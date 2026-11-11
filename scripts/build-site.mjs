@@ -10,7 +10,7 @@ import { homeCss, homeHtml } from "./site/home.mjs";
 import { tokensCss } from "./site/tokens.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const dist = process.env.SITE_DIST ?? join(root, "site", "dist");
+const dist = process.env.SITE_DIST ?? join(root, "dist");
 
 // Canonical URL (og:url, og:image, links between pages). rollo.juanifraga.com serves the same site too (site/wrangler.jsonc):
 // old app builds, sent emails and shared friend links point there.
@@ -75,7 +75,7 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:15px}
 .muted{color:var(--muted)}
 `;
 
-const footer = `<footer><p>&copy; 2026 Juan Ignacio Fraga &middot; Uruguay</p>
+const footer = `<footer><p>&copy; 2026 Somos Rollo &middot; Uruguay</p>
 <p><a href="/privacidad">Privacidad</a> &middot; <a href="/terminos">T&eacute;rminos</a> &middot; <a href="/soporte">Soporte</a></p></footer>`;
 
 const beacon = CF_ANALYTICS_TOKEN
@@ -162,14 +162,14 @@ for (const name of ["hero.mp4", "hero.webm", "hero-poster.jpg", "map.jpg", "reve
 }
 copyFileSync(join(root, "scripts", "site", "og.png"), join(dist, "og.png"));
 const soporte = `<h2>Soporte</h2>
-<p>Escribinos a <a href="mailto:soporte@juanifraga.com">soporte@juanifraga.com</a> y te respondemos.</p>
+<p>Escribinos a <a href="mailto:soporte@somosrollo.com">soporte@somosrollo.com</a> y te respondemos.</p>
 <div class="faq">
 <h3>&iquest;C&oacute;mo me sumo a un rollo?</h3>
 <p>Con el c&oacute;digo de 6 caracteres que te pasa alguien del rollo. Lo ingres&aacute;s en la app y listo.</p>
 <h3>&iquest;C&oacute;mo borro mi cuenta?</h3>
 <p>Desde Perfil &rarr; Ajustes &rarr; Borrar cuenta. Es definitivo: se borran tus fotos y videos de todos los rollos, tu membres&iacute;a, tus amistades, tu foto de perfil y tu email. Los detalles est&aacute;n en la <a href="/privacidad">pol&iacute;tica de privacidad</a>.</p>
 <h3>&iquest;C&oacute;mo denuncio una foto o bloqueo a alguien?</h3>
-<p>Desde la app, en la foto o en el perfil de la persona. Tambi&eacute;n nos pod&eacute;s escribir a <a href="mailto:soporte@juanifraga.com">soporte@juanifraga.com</a>.</p>
+<p>Desde la app, en la foto o en el perfil de la persona. Tambi&eacute;n nos pod&eacute;s escribir a <a href="mailto:soporte@somosrollo.com">soporte@somosrollo.com</a>.</p>
 <h3>&iquest;Hay versi&oacute;n para Android?</h3>
 <p>Por ahora Rollo es solo para iPhone.</p>
 </div>`;
@@ -296,11 +296,10 @@ write(".well-known/apple-app-site-association", JSON.stringify({
   },
 }, null, 2) + "\n");
 // Cloudflare Workers Static Assets: the extensionless AASA file must be served as JSON.
-write("_headers", "/.well-known/apple-app-site-association\n  Content-Type: application/json\n");
 write("404.html", page({
   title: "No encontrada · Rollo",
   description: "Esta página no existe.",
   body: `<h1>No encontramos esa p&aacute;gina</h1><p><a href="/">Volver al inicio</a></p>`,
 }));
 write("favicon.svg", favicon);
-console.log("site built in site/dist");
+console.log(`site built in ${dist}`);

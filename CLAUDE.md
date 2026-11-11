@@ -13,18 +13,26 @@ y las dos páginas que usan los links que manda la app (`/entrar` y `/friends`).
 
 - **`somosrollo.com`** (canónico: `SITE_URL` en `scripts/build-site.mjs`, `og:url`, `og:image`, links entre páginas).
 - **`rollo.juanifraga.com`** sirve **lo mismo** y no se saca: los builds de la app ya instalados declaran ese dominio para
-  Universal Links, y los mails y links de amistad ya mandados apuntan ahí. Los dos son custom domains del mismo Worker
-  (`routes` en `site/wrangler.jsonc`) y publican el mismo `/.well-known/apple-app-site-association`.
+  Universal Links, y los mails y links de amistad ya mandados apuntan ahí. Los dos son dominios del mismo proyecto de Vercel
+  y publican el mismo `/.well-known/apple-app-site-association`. El DNS sigue en Cloudflare (registros en "DNS only", sin el
+  proxy naranja, apuntando a Vercel).
+
+## Deploy (Vercel)
+
+Proyecto de Vercel conectado a este repo (misma cuenta que `front-admin`): cada push a `main` publica en producción y cada
+PR tiene su preview. La config está en `vercel.json` (sin framework: `npm ci`, `npm run build`, sirve `dist/` tal cual) y el
+header `Content-Type: application/json` del archivo de Universal Links, que no tiene extensión. Vercel sirve los estáticos
+con soporte de rangos (lo que necesita Safari para reproducir el video del hero). Hasta el 11/11/2026 el sitio corría en un
+Worker de Cloudflare (`rollo-site`).
 
 ## Qué hay
 
-Cloudflare Workers, solo archivos estáticos (Worker `rollo-site`, `site/worker.js` solo corre para el video del hero, para
-responder pedidos por rangos): la home es la **landing** corta (hero con el video del celular + 2 secciones, mapa y revelado,
+Solo archivos estáticos: la home es la **landing** corta (hero con el video del celular + 2 secciones, mapa y revelado,
 con una captura de la app cada una + cierre; badge oficial "Descárgalo en el App Store"), `/soporte` (preguntas frecuentes y
 contacto; `/#soporte` cae en el link a esa página), `/privacidad`, `/terminos`, `/friends` (respaldo del link de amistad:
 código, "Abrir Rollo" y bajar la app, sin redirigir) y `/entrar` (el link mágico del mail; script inline, sin pedidos a ningún
 lado, con su CSP; solo abre `rollo://login?token=…&email=…` y borra el fragmento de la barra). Los textos legales se escriben
-**solo** en `docs/legal/*.md`; `scripts/build-site.mjs` arma el HTML en `site/dist/` (la home vive en `scripts/site/home.mjs`,
+**solo** en `docs/legal/*.md`; `scripts/build-site.mjs` arma el HTML en `dist/` (la home vive en `scripts/site/home.mjs`,
 los tokens de color en `scripts/site/tokens.mjs`). Son las URLs de privacidad, soporte (`/soporte`) y marketing de App Store Connect.
 
 - **Botón de la home:** la app está en la App Store, así que `STORE_MODE` es `"appstore"` por defecto (`SITE_STORE_MODE=beta`
@@ -52,8 +60,7 @@ los tokens de color en `scripts/site/tokens.mjs`). Son las URLs de privacidad, s
 - **Universal Links:** `/.well-known/apple-app-site-association` (`application/json` vía `_headers`) con el app ID
   `UXHNAR4HYC.com.juanifraga.rollo.app`, para `/entrar` y `/friends`.
 
-Contacto: `soporte@juanifraga.com` (Email Routing de Cloudflare → Gmail de Juani); pasa a `soporte@somosrollo.com` en la
-etapa de mail de la mudanza.
+Contacto: `soporte@somosrollo.com` (Email Routing de Cloudflare → Gmail de Juani).
 
 ## Cómo trabajamos
 
@@ -65,8 +72,7 @@ etapa de mail de la mudanza.
 
 ```bash
 npm test          # tests del sitio
-npm run build     # arma site/dist/
-npm run dev       # build + wrangler dev (http://localhost:8787)
-npm run deploy    # build + publicar el Worker rollo-site (crea los custom domains si faltan)
+npm run build     # arma dist/
+npm run preview   # build + servirlo en local (npx serve)
 npm run og        # regenera la imagen para compartir
 ```

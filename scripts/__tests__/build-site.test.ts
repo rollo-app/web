@@ -91,12 +91,29 @@ describe("the /entrar page (magic link from the email)", () => {
   });
 });
 
-describe("site domains", () => {
-  it("serves the new domain and keeps the old one (old app builds, sent emails and friend links point there)", () => {
-    const config = JSON.parse(readFileSync(join(__dirname, "..", "..", "site", "wrangler.jsonc"), "utf8"));
-    expect(config.routes).toEqual([
-      { pattern: "somosrollo.com", custom_domain: true },
-      { pattern: "rollo.juanifraga.com", custom_domain: true },
-    ]);
+describe("Vercel project", () => {
+  it("builds with npm run build and serves dist/ as plain static files", () => {
+    const vercel = JSON.parse(readFileSync(join(__dirname, "..", "..", "vercel.json"), "utf8"));
+    expect(vercel).toMatchObject({ framework: null, installCommand: "npm ci", buildCommand: "npm run build", outputDirectory: "dist" });
+  });
+});
+
+describe("footer", () => {
+  it("every page signs as Somos Rollo", () => {
+    for (const page of ["index.html", "soporte/index.html", "privacidad/index.html", "terminos/index.html", "friends/index.html"]) {
+      const footer = readFileSync(join(dist, page), "utf8").match(/<footer>[\s\S]*?<\/footer>/)?.[0];
+      expect(footer).toContain("&copy; 2026 Somos Rollo");
+      expect(footer).not.toContain("Fraga");
+    }
+  });
+});
+
+describe("support email", () => {
+  it("every page and the legal texts point to soporte@somosrollo.com", () => {
+    for (const page of ["soporte/index.html", "privacidad/index.html", "terminos/index.html"]) {
+      const content = readFileSync(join(dist, page), "utf8");
+      expect(content).toContain("soporte@somosrollo.com");
+      expect(content).not.toContain("soporte@juanifraga.com");
+    }
   });
 });

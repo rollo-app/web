@@ -1,5 +1,5 @@
 node_modules/
 # static site build
-/site/dist/
-.wrangler/
+/dist/
+.vercel/
 .DS_Store
