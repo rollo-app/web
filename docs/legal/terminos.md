@@ -10,11 +10,11 @@ Rollo es una app para sacar fotos y videos en grupo. Cada grupo es un "rollo". L
 
 ## 2. Tu cuenta
 
-- Entrás con tu email y un código que te mandamos. Tenés que poder recibir mails en esa dirección.
+- Entrás con tu email y un código que te mandamos, o con tu cuenta de Apple o de Google. Tenés que poder recibir mails en el email de tu cuenta.
 - Tenés que tener al menos 13 años (y si sos menor de 18, el permiso de tu madre, padre o tutor).
 - La información que ponés tiene que ser verdadera y no podés hacerte pasar por otra persona. Elegí un nombre y @usuario que no sean ofensivos ni engañosos.
-- Cuidá tu celular y tu email: lo que pase con tu sesión es tu responsabilidad.
-- Podés cerrar sesión o **borrar tu cuenta** cuando quieras desde Perfil → Ajustes → Borrar cuenta. Al hacerlo se borran tus fotos y videos (ver la Política de privacidad).
+- Cuidá tu celular, tu email y tu cuenta de Apple o de Google: lo que pase con tu sesión es tu responsabilidad.
+- Podés cerrar sesión o **borrar tu cuenta** cuando quieras desde Perfil → Ajustes → Borrar cuenta. Al hacerlo se borran tus fotos (ver la Política de privacidad).
 
 ## 3. Lo que subís es tu responsabilidad
 
