@@ -107,3 +107,13 @@ describe("footer", () => {
     }
   });
 });
+
+describe("support email", () => {
+  it("every page and the legal texts point to soporte@somosrollo.com", () => {
+    for (const page of ["soporte/index.html", "privacidad/index.html", "terminos/index.html"]) {
+      const content = readFileSync(join(dist, page), "utf8");
+      expect(content).toContain("soporte@somosrollo.com");
+      expect(content).not.toContain("soporte@juanifraga.com");
+    }
+  });
+});

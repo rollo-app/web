@@ -60,8 +60,7 @@ los tokens de color en `scripts/site/tokens.mjs`). Son las URLs de privacidad, s
 - **Universal Links:** `/.well-known/apple-app-site-association` (`application/json` vía `_headers`) con el app ID
   `UXHNAR4HYC.com.juanifraga.rollo.app`, para `/entrar` y `/friends`.
 
-Contacto: `soporte@juanifraga.com` (Email Routing de Cloudflare → Gmail de Juani); pasa a `soporte@somosrollo.com` en la
-etapa de mail de la mudanza.
+Contacto: `soporte@somosrollo.com` (Email Routing de Cloudflare → Gmail de Juani).
 
 ## Cómo trabajamos
 
