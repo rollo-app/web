@@ -28,9 +28,13 @@ describe("Universal Links files", () => {
     for (const c of detail.components) expect(c["#"]).toBeUndefined(); // fragments allowed
   });
 
-  it("sets application/json on the association file through _headers", () => {
-    const headers = readFileSync(join(dist, "_headers"), "utf8");
-    expect(headers).toMatch(/^\/\.well-known\/apple-app-site-association\n[ \t]+Content-Type: application\/json$/m);
+  it("sets application/json on the association file through vercel.json (it has no extension)", () => {
+    const vercel = JSON.parse(readFileSync(join(__dirname, "..", "..", "vercel.json"), "utf8"));
+    expect(vercel.headers).toContainEqual({
+      source: "/.well-known/apple-app-site-association",
+      headers: [{ key: "Content-Type", value: "application/json" }],
+    });
+    expect(existsSync(join(dist, "_headers"))).toBe(false);
   });
 });
 
