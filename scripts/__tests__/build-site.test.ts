@@ -97,3 +97,13 @@ describe("Vercel project", () => {
     expect(vercel).toMatchObject({ framework: null, installCommand: "npm ci", buildCommand: "npm run build", outputDirectory: "dist" });
   });
 });
+
+describe("footer", () => {
+  it("every page signs as Somos Rollo", () => {
+    for (const page of ["index.html", "soporte/index.html", "privacidad/index.html", "terminos/index.html", "friends/index.html"]) {
+      const footer = readFileSync(join(dist, page), "utf8").match(/<footer>[\s\S]*?<\/footer>/)?.[0];
+      expect(footer).toContain("&copy; 2026 Somos Rollo");
+      expect(footer).not.toContain("Fraga");
+    }
+  });
+});

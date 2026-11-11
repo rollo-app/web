@@ -75,7 +75,7 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:15px}
 .muted{color:var(--muted)}
 `;
 
-const footer = `<footer><p>&copy; 2026 Juan Ignacio Fraga &middot; Uruguay</p>
+const footer = `<footer><p>&copy; 2026 Somos Rollo &middot; Uruguay</p>
 <p><a href="/privacidad">Privacidad</a> &middot; <a href="/terminos">T&eacute;rminos</a> &middot; <a href="/soporte">Soporte</a></p></footer>`;
 
 const beacon = CF_ANALYTICS_TOKEN
