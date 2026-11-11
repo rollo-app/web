@@ -91,12 +91,9 @@ describe("the /entrar page (magic link from the email)", () => {
   });
 });
 
-describe("site domains", () => {
-  it("serves the new domain and keeps the old one (old app builds, sent emails and friend links point there)", () => {
-    const config = JSON.parse(readFileSync(join(__dirname, "..", "..", "site", "wrangler.jsonc"), "utf8"));
-    expect(config.routes).toEqual([
-      { pattern: "somosrollo.com", custom_domain: true },
-      { pattern: "rollo.juanifraga.com", custom_domain: true },
-    ]);
+describe("Vercel project", () => {
+  it("builds with npm run build and serves dist/ as plain static files", () => {
+    const vercel = JSON.parse(readFileSync(join(__dirname, "..", "..", "vercel.json"), "utf8"));
+    expect(vercel).toMatchObject({ framework: null, installCommand: "npm ci", buildCommand: "npm run build", outputDirectory: "dist" });
   });
 });

@@ -10,7 +10,7 @@ import { homeCss, homeHtml } from "./site/home.mjs";
 import { tokensCss } from "./site/tokens.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const dist = process.env.SITE_DIST ?? join(root, "site", "dist");
+const dist = process.env.SITE_DIST ?? join(root, "dist");
 
 // Canonical URL (og:url, og:image, links between pages). rollo.juanifraga.com serves the same site too (site/wrangler.jsonc):
 // old app builds, sent emails and shared friend links point there.
@@ -296,11 +296,10 @@ write(".well-known/apple-app-site-association", JSON.stringify({
   },
 }, null, 2) + "\n");
 // Cloudflare Workers Static Assets: the extensionless AASA file must be served as JSON.
-write("_headers", "/.well-known/apple-app-site-association\n  Content-Type: application/json\n");
 write("404.html", page({
   title: "No encontrada · Rollo",
   description: "Esta página no existe.",
   body: `<h1>No encontramos esa p&aacute;gina</h1><p><a href="/">Volver al inicio</a></p>`,
 }));
 write("favicon.svg", favicon);
-console.log("site built in site/dist");
+console.log(`site built in ${dist}`);
