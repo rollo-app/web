@@ -1,0 +1,21 @@
+{
+  "name": "rollo-web",
+  "private": true,
+  "description": "Sitio público de Rollo (somosrollo.com): landing, soporte, legales, /entrar y /friends",
+  "scripts": {
+    "build": "node scripts/build-site.mjs",
+    "deploy": "npm run build && wrangler deploy --config site/wrangler.jsonc",
+    "dev": "npm run build && wrangler dev --config site/wrangler.jsonc",
+    "og": "node scripts/build-og.mjs",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "esbuild": "0.28.2",
+    "marked": "^18.1.1",
+    "motion": "14.0.0",
+    "qrcode": "^1.5.4",
+    "vitest": "^4.1.12",
+    "wrangler": "^4.151.1"
+  }
+}
