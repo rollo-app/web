@@ -1,7 +1,7 @@
 {
   "name": "rollo-web",
   "private": true,
-  "description": "Sitio público de Rollo (somosrollo.com, en Vercel): landing, soporte, legales, /entrar y /friends",
+  "description": "Sitio público de Rollo (rolloproject.com, en Vercel): landing, soporte, legales, /entrar y /friends",
   "scripts": {
     "build": "node scripts/build-site.mjs",
     "preview": "npm run build && npx --yes serve@14 dist",

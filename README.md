@@ -1,6 +1,6 @@
 # Rollo — web
 
-Sitio público de [Rollo](https://somosrollo.com): landing, soporte, privacidad, términos y las páginas que usan los links de la
+Sitio público de [Rollo](https://rolloproject.com): landing, soporte, privacidad, términos y las páginas que usan los links de la
 app (`/entrar` y `/friends`). Es HTML estático armado con `scripts/build-site.mjs` y publicado en Vercel (cada push a `main` va a producción).
 
 ```bash
