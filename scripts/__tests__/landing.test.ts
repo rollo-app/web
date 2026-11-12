@@ -20,7 +20,7 @@ describe("the /soporte page", () => {
   it("has its own title, the support email and the FAQ", () => {
     const html = read("soporte/index.html");
     expect(html).toContain("<title>Soporte · Rollo</title>");
-    expect(html).toContain("mailto:soporte@rolloproject.com");
+    expect(html).toContain("mailto:support@rolloproject.com");
     for (const q of [
       "&iquest;C&oacute;mo me sumo a un rollo?",
       "&iquest;C&oacute;mo borro mi cuenta?",

@@ -109,10 +109,10 @@ describe("footer", () => {
 });
 
 describe("support email", () => {
-  it("every page and the legal texts point to soporte@rolloproject.com", () => {
+  it("every page and the legal texts point to support@rolloproject.com", () => {
     for (const page of ["soporte/index.html", "privacidad/index.html", "terminos/index.html"]) {
       const content = readFileSync(join(dist, page), "utf8");
-      expect(content).toContain("soporte@rolloproject.com");
+      expect(content).toContain("support@rolloproject.com");
       expect(content).not.toContain("soporte@juanifraga.com");
     }
   });
