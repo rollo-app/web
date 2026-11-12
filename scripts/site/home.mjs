@@ -48,7 +48,7 @@ export function homeHtml({ storeMode, testflightUrl, appStoreUrl, siteUrl, qr = 
     `<link rel="canonical" href="${siteUrl}/">`,
     `<meta property="og:type" content="website">`,
     `<meta property="og:url" content="${siteUrl}/">`,
-    `<meta property="og:title" content="Rollo · Sacá la foto. Mirala después.">`,
+    `<meta property="og:title" content="Rollo Project · Sacá la foto. Mirala después.">`,
     `<meta property="og:description" content="${description}">`,
     `<meta property="og:image" content="${siteUrl}/og.png">`,
     `<meta property="og:image:width" content="1200">`,

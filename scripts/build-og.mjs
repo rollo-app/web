@@ -20,7 +20,7 @@ const svg = `
     <circle cx="66" cy="54" r="24" fill-opacity="0.38"/>
     <circle cx="71" cy="49" r="14"/>
   </g>
-  <text x="168" y="130" font-family="${SERIF}" font-size="44" font-weight="600" fill="#1C1C1E">Rollo</text>
+  <text x="168" y="130" font-family="${SERIF}" font-size="44" font-weight="600" fill="#1C1C1E">Rollo Project</text>
   <text font-family="${SERIF}" font-size="76" font-weight="600" fill="#1C1C1E">
     <tspan x="96" y="330">Sacá la foto.</tspan>
     <tspan x="96" y="420">Mirala después.</tspan>

@@ -1,12 +1,12 @@
-# Política de privacidad de Rollo
+# Política de privacidad de Rollo Project
 
-Última actualización: 11 de noviembre de 2026
+Última actualización: 12 de noviembre de 2026
 
 Rollo es una app para sacar fotos en grupo que nadie ve hasta el revelado. Acá te contamos, sin vueltas, qué datos guardamos, para qué y qué control tenés.
 
 ## 1. Quién es responsable
 
-Rollo es desarrollada y operada por Juan Ignacio Fraga ("yo", "Rollo"), desde Uruguay. Tratamos tus datos según la Ley N.º 18.331 de Protección de Datos Personales de Uruguay. Para cualquier duda o pedido sobre tus datos escribí a **support@rolloproject.com**.
+Rollo Project es desarrollada y operada por Juan Ignacio Fraga ("yo", "Rollo"), desde Uruguay. Tratamos tus datos según la Ley N.º 18.331 de Protección de Datos Personales de Uruguay. Para cualquier duda o pedido sobre tus datos escribí a **support@rolloproject.com**.
 
 ## 2. Qué datos guardamos
 

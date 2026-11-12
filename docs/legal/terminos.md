@@ -1,6 +1,6 @@
-# Términos de uso de Rollo
+# Términos de uso de Rollo Project
 
-Última actualización: 11 de noviembre de 2026
+Última actualización: 12 de noviembre de 2026
 
 Al crear una cuenta o usar Rollo aceptás estos términos. Si no estás de acuerdo, no uses la app.
 
