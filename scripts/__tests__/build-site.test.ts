@@ -99,20 +99,20 @@ describe("Vercel project", () => {
 });
 
 describe("footer", () => {
-  it("every page signs as Somos Rollo", () => {
+  it("every page signs as Rollo Project", () => {
     for (const page of ["index.html", "soporte/index.html", "privacidad/index.html", "terminos/index.html", "friends/index.html"]) {
       const footer = readFileSync(join(dist, page), "utf8").match(/<footer>[\s\S]*?<\/footer>/)?.[0];
-      expect(footer).toContain("&copy; 2026 Somos Rollo");
+      expect(footer).toContain("&copy; 2026 Rollo Project");
       expect(footer).not.toContain("Fraga");
     }
   });
 });
 
 describe("support email", () => {
-  it("every page and the legal texts point to soporte@somosrollo.com", () => {
+  it("every page and the legal texts point to soporte@rolloproject.com", () => {
     for (const page of ["soporte/index.html", "privacidad/index.html", "terminos/index.html"]) {
       const content = readFileSync(join(dist, page), "utf8");
-      expect(content).toContain("soporte@somosrollo.com");
+      expect(content).toContain("soporte@rolloproject.com");
       expect(content).not.toContain("soporte@juanifraga.com");
     }
   });

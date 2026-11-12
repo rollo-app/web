@@ -6,12 +6,13 @@ Los textos del sitio también van en rioplatense con voseo.
 Es el **sitio público** de Rollo (app iOS de fotos en grupo que nadie ve hasta el revelado): la landing, soporte, los legales
 y las dos páginas que usan los links que manda la app (`/entrar` y `/friends`). Vivía en `rollo-app/mobile` hasta el
 11/11/2026 (la historia vieja está ahí); se separó junto con la mudanza al dominio propio
-(decisión en `rollo-app/backend`, `docs/decisiones/0003-dominio-somosrollo.md`). La app vive en
+(decisión en `rollo-app/backend`, `docs/decisiones/0003-dominio-propio.md`). La app vive en
 [rollo-app/mobile](https://github.com/rollo-app/mobile) y la API en [rollo-app/backend](https://github.com/rollo-app/backend).
 
 ## Dominios
 
-- **`somosrollo.com`** (canónico: `SITE_URL` en `scripts/build-site.mjs`, `og:url`, `og:image`, links entre páginas).
+- **`rolloproject.com`** (canónico; la marca es "Rollo Project": `SITE_URL` en `scripts/build-site.mjs`, `og:url`, `og:image`, links entre páginas).
+- **`somosrollo.com`** (primer dominio propio, usado unas horas el 11/11/2026): redirige a `rolloproject.com` desde Vercel.
 - **`rollo.juanifraga.com`** sirve **lo mismo** y no se saca: los builds de la app ya instalados declaran ese dominio para
   Universal Links, y los mails y links de amistad ya mandados apuntan ahí. Los dos son dominios del mismo proyecto de Vercel
   y publican el mismo `/.well-known/apple-app-site-association`. El DNS sigue en Cloudflare (registros en "DNS only", sin el
@@ -52,7 +53,7 @@ los tokens de color en `scripts/site/tokens.mjs`). Son las URLs de privacidad, s
 - **Analytics:** Cloudflare Web Analytics (sin cookies, solo vistas). El token (público) está en `CF_ANALYTICS_TOKEN` de
   `build-site.mjs`; `SITE_CF_ANALYTICS_TOKEN=""` arma sin beacon (lo usan los tests). El beacon va en todas las páginas menos
   `/entrar`; en `/friends` el CSP suma `static.cloudflareinsights.com` solo cuando hay token. **Pendiente:** el sitio de Web
-  Analytics está dado de alta para `rollo.juanifraga.com`; sumar `somosrollo.com`.
+  Analytics está dado de alta para `rollo.juanifraga.com`; sumar `rolloproject.com`.
 - **QR en desktop:** el hero lleva un QR inline (`qrcode`, generado en el build) con "Escaneá con tu iPhone"; solo en pantallas
   anchas con mouse (`hover:hover` + `pointer:fine`).
 - **Smart App Banner:** con `STORE_MODE === "appstore"` la home suma `apple-itunes-app` (app-id 6825843502).
@@ -60,7 +61,7 @@ los tokens de color en `scripts/site/tokens.mjs`). Son las URLs de privacidad, s
 - **Universal Links:** `/.well-known/apple-app-site-association` (`application/json` vía `_headers`) con el app ID
   `UXHNAR4HYC.com.juanifraga.rollo.app`, para `/entrar` y `/friends`.
 
-Contacto: `soporte@somosrollo.com` (Email Routing de Cloudflare → Gmail de Juani).
+Contacto: `soporte@rolloproject.com` (Email Routing de Cloudflare → Gmail de Juani).
 
 ## Cómo trabajamos
 

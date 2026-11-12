@@ -52,7 +52,7 @@ function open(hash: string) {
     open: { hidden: false, href: "#" },
     code: { hidden: false, textContent: "" },
   };
-  const location = { hash, pathname: "/friends", search: "", href: `https://somosrollo.com/friends${hash}` };
+  const location = { hash, pathname: "/friends", search: "", href: `https://rolloproject.com/friends${hash}` };
   const history = { replaceState: vi.fn() };
   const document = { getElementById: (id: keyof typeof elements) => elements[id] };
   new Function("location", "history", "document", inlineScript())(location, history, document);
@@ -63,8 +63,8 @@ describe("the /friends page (friend link fallback)", () => {
   it("has a link preview card (Open Graph and Twitter)", () => {
     expect(html).toContain('<meta property="og:title" content="Te invitaron a Rollo">');
     expect(html).toContain('<meta property="og:description" content="Sumate como amigo en Rollo.">');
-    expect(html).toContain('<meta property="og:image" content="https://somosrollo.com/og.png">');
-    expect(html).toContain('<meta property="og:url" content="https://somosrollo.com/friends">');
+    expect(html).toContain('<meta property="og:image" content="https://rolloproject.com/og.png">');
+    expect(html).toContain('<meta property="og:url" content="https://rolloproject.com/friends">');
     expect(html).toContain('<meta property="og:image:width" content="1200">');
     expect(html).toContain('<meta name="twitter:card" content="summary_large_image">');
   });
@@ -75,7 +75,7 @@ describe("the /friends page (friend link fallback)", () => {
     expect(elements.code.textContent).toBe("K7M2QX9A");
     expect(elements.ok.hidden).toBe(false);
     expect(elements.bad.hidden).toBe(true);
-    expect(location.href).toBe("https://somosrollo.com/friends#K7M2QX9A");
+    expect(location.href).toBe("https://rolloproject.com/friends#K7M2QX9A");
     expect(history.replaceState).not.toHaveBeenCalled();
   });
 
