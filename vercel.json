@@ -7,7 +7,54 @@
   "headers": [
     {
       "source": "/.well-known/apple-app-site-association",
-      "headers": [{ "key": "Content-Type", "value": "application/json" }]
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/entrar",
+      "destination": "/login",
+      "permanent": true
+    },
+    {
+      "source": "/entrar/",
+      "destination": "/login",
+      "permanent": true
+    },
+    {
+      "source": "/soporte",
+      "destination": "/support",
+      "permanent": true
+    },
+    {
+      "source": "/soporte/",
+      "destination": "/support",
+      "permanent": true
+    },
+    {
+      "source": "/privacidad",
+      "destination": "/privacy",
+      "permanent": true
+    },
+    {
+      "source": "/privacidad/",
+      "destination": "/privacy",
+      "permanent": true
+    },
+    {
+      "source": "/terminos",
+      "destination": "/terms",
+      "permanent": true
+    },
+    {
+      "source": "/terminos/",
+      "destination": "/terms",
+      "permanent": true
     }
   ]
 }

@@ -2,7 +2,7 @@
 import { vi } from "vitest";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -12,11 +12,11 @@ let html: string;
 beforeAll(() => {
   dist = mkdtempSync(join(tmpdir(), "rollo-site-"));
   execFileSync(process.execPath, [join(__dirname, "..", "build-site.mjs")], { env: { ...process.env, SITE_DIST: dist, SITE_CF_ANALYTICS_TOKEN: "" } });
-  html = readFileSync(join(dist, "entrar", "index.html"), "utf8");
+  html = readFileSync(join(dist, "login", "index.html"), "utf8");
 });
 afterAll(() => rmSync(dist, { recursive: true, force: true }));
 
-it("the /entrar page loads no motion script nor motion class", () => {
+it("the /login page loads no motion script nor motion class", () => {
   for (const needle of ["motion.js", "landing.js", "js-motion"]) expect(html).not.toContain(needle);
 });
 
@@ -26,21 +26,21 @@ const inlineScript = () => {
   return scripts[0]!;
 };
 
-/** Runs the page's script against a fake browser opened at `/entrar<hash>`. */
+/** Runs the page's script against a fake browser opened at `/login<hash>`. */
 function open(hash: string) {
   const elements: { [id in "ok" | "bad" | "open"]: { hidden: boolean; href?: string } } = {
     ok: { hidden: true },
     bad: { hidden: true },
     open: { hidden: false, href: "#" },
   };
-  const location = { hash, pathname: "/entrar", search: "", href: `https://rollo.juanifraga.com/entrar${hash}` };
+  const location = { hash, pathname: "/login", search: "", href: `https://rolloproject.com/login${hash}` };
   const history = { replaceState: vi.fn() };
   const document = { getElementById: (id: keyof typeof elements) => elements[id] };
   new Function("location", "history", "document", inlineScript())(location, history, document);
   return { location, history, elements };
 }
 
-describe("the /entrar page (magic link from the email)", () => {
+describe("the /login page (magic link from the email)", () => {
   it("opens the app with the token and the email from the fragment, encoded", () => {
     const { location, elements } = open("#t=abc%2Bdef&e=juani%2Bviaje%40rollo.test");
 
@@ -53,12 +53,12 @@ describe("the /entrar page (magic link from the email)", () => {
 
   it("clears the token from the address bar", () => {
     const { history } = open("#t=abc&e=a%40b.c");
-    expect(history.replaceState).toHaveBeenCalledWith(null, "", "/entrar");
+    expect(history.replaceState).toHaveBeenCalledWith(null, "", "/login");
   });
 
   it("without a token it says the link isn't valid and opens nothing", () => {
     const { location, elements } = open("");
-    expect(location.href).toBe("https://rollo.juanifraga.com/entrar");
+    expect(location.href).toBe("https://rolloproject.com/login");
     expect(elements.bad.hidden).toBe(false);
     expect(elements.ok.hidden).toBe(true);
   });
@@ -91,6 +91,17 @@ describe("the /entrar page (magic link from the email)", () => {
   });
 });
 
+describe("old Spanish routes", () => {
+  it("redirect permanently to the English ones (sent emails and installed app builds still link them)", () => {
+    const vercel = JSON.parse(readFileSync(join(__dirname, "..", "..", "vercel.json"), "utf8"));
+    for (const [from, to] of [["entrar", "login"], ["soporte", "support"], ["privacidad", "privacy"], ["terminos", "terms"]]) {
+      expect(vercel.redirects).toContainEqual({ source: `/${from}`, destination: `/${to}`, permanent: true });
+      expect(vercel.redirects).toContainEqual({ source: `/${from}/`, destination: `/${to}`, permanent: true });
+      expect(existsSync(join(dist, from))).toBe(false);
+    }
+  });
+});
+
 describe("Vercel project", () => {
   it("builds with npm run build and serves dist/ as plain static files", () => {
     const vercel = JSON.parse(readFileSync(join(__dirname, "..", "..", "vercel.json"), "utf8"));
@@ -100,7 +111,7 @@ describe("Vercel project", () => {
 
 describe("footer", () => {
   it("every page signs as Rollo Project", () => {
-    for (const page of ["index.html", "soporte/index.html", "privacidad/index.html", "terminos/index.html", "friends/index.html"]) {
+    for (const page of ["index.html", "support/index.html", "privacy/index.html", "terms/index.html", "friends/index.html"]) {
       const footer = readFileSync(join(dist, page), "utf8").match(/<footer>[\s\S]*?<\/footer>/)?.[0];
       expect(footer).toContain("&copy; 2026 Rollo Project");
       expect(footer).not.toContain("Fraga");
@@ -110,7 +121,7 @@ describe("footer", () => {
 
 describe("support email", () => {
   it("every page and the legal texts point to support@rolloproject.com", () => {
-    for (const page of ["soporte/index.html", "privacidad/index.html", "terminos/index.html"]) {
+    for (const page of ["support/index.html", "privacy/index.html", "terms/index.html"]) {
       const content = readFileSync(join(dist, page), "utf8");
       expect(content).toContain("support@rolloproject.com");
       expect(content).not.toContain("soporte@juanifraga.com");

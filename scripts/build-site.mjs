@@ -23,7 +23,7 @@ const TESTFLIGHT_URL = "https://testflight.apple.com/join/Q557gZkR";
 // No country in the path: Apple opens the store of whoever taps it.
 const APP_STORE_URL = "https://apps.apple.com/app/id6825843502";
 // Cloudflare Web Analytics (cookieless, page views only); public token from the Web Analytics site. SITE_CF_ANALYTICS_TOKEN=""
-// builds without it (the tests do). Never added to /entrar (strict CSP, no third-party requests).
+// builds without it (the tests do). Never added to /login (strict CSP, no third-party requests).
 const CF_ANALYTICS_TOKEN = (process.env.SITE_CF_ANALYTICS_TOKEN ?? "773f8a15b710464095838f919b7389d8") || null;
 const APP_STORE_BADGE = process.env.SITE_APP_STORE_BADGE ?? join(root, "scripts", "site", "app-store-badge.svg");
 
@@ -76,7 +76,7 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:15px}
 `;
 
 const footer = `<footer><p>&copy; 2026 Rollo Project &middot; Uruguay</p>
-<p><a href="/privacidad">Privacidad</a> &middot; <a href="/terminos">T&eacute;rminos</a> &middot; <a href="/soporte">Soporte</a></p></footer>`;
+<p><a href="/privacy">Privacidad</a> &middot; <a href="/terms">T&eacute;rminos</a> &middot; <a href="/support">Soporte</a></p></footer>`;
 
 const beacon = CF_ANALYTICS_TOKEN
   ? `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='${JSON.stringify({ token: CF_ANALYTICS_TOKEN })}'></script>\n`
@@ -125,8 +125,8 @@ const write = (path, content) => {
 const legal = (name) =>
   marked
     .parse(readFileSync(join(root, "docs", "legal", `${name}.md`), "utf8"))
-    .replaceAll('href="privacidad.md"', 'href="/privacidad"')
-    .replaceAll('href="terminos.md"', 'href="/terminos"');
+    .replaceAll('href="privacidad.md"', 'href="/privacy"')
+    .replaceAll('href="terminos.md"', 'href="/terms"');
 
 const home = homeHtml({
   storeMode: STORE_MODE,
@@ -167,31 +167,31 @@ const soporte = `<h2>Soporte</h2>
 <h3>&iquest;C&oacute;mo me sumo a un rollo?</h3>
 <p>Con el c&oacute;digo de 6 caracteres que te pasa alguien del rollo. Lo ingres&aacute;s en la app y listo.</p>
 <h3>&iquest;C&oacute;mo borro mi cuenta?</h3>
-<p>Desde Perfil &rarr; Ajustes &rarr; Borrar cuenta. Es definitivo: se borran tus fotos y videos de todos los rollos, tu membres&iacute;a, tus amistades, tu foto de perfil y tu email. Los detalles est&aacute;n en la <a href="/privacidad">pol&iacute;tica de privacidad</a>.</p>
+<p>Desde Perfil &rarr; Ajustes &rarr; Borrar cuenta. Es definitivo: se borran tus fotos y videos de todos los rollos, tu membres&iacute;a, tus amistades, tu foto de perfil y tu email. Los detalles est&aacute;n en la <a href="/privacy">pol&iacute;tica de privacidad</a>.</p>
 <h3>&iquest;C&oacute;mo denuncio una foto o bloqueo a alguien?</h3>
 <p>Desde la app, en la foto o en el perfil de la persona. Tambi&eacute;n nos pod&eacute;s escribir a <a href="mailto:support@rolloproject.com">support@rolloproject.com</a>.</p>
 <h3>&iquest;Hay versi&oacute;n para Android?</h3>
 <p>Por ahora Rollo es solo para iPhone.</p>
 </div>`;
 
-write("soporte/index.html", page({
+write("support/index.html", page({
   title: "Soporte · Rollo",
   description: "Soporte de Rollo: preguntas frecuentes y contacto.",
   body: soporte,
 }));
-write("privacidad/index.html", page({
+write("privacy/index.html", page({
   title: "Política de privacidad · Rollo",
   description: "Política de privacidad de Rollo.",
   body: legal("privacidad"),
 }));
-write("terminos/index.html", page({
+write("terms/index.html", page({
   title: "Términos de uso · Rollo",
   description: "Términos de uso de Rollo.",
   body: legal("terminos"),
 }));
-// The login email's button: https://rolloproject.com/entrar#t=<token>&e=<email>. The fragment never reaches
+// The login email's button: https://rolloproject.com/login#t=<token>&e=<email>. The fragment never reaches
 // any server; this page only hands it to the app (rollo://login) and wipes it from the address bar.
-const entrarScript = `(function () {
+const loginScript = `(function () {
   var params = new URLSearchParams(location.hash.slice(1));
   var token = params.get("t");
   var email = params.get("e");
@@ -206,7 +206,7 @@ const entrarScript = `(function () {
   location.href = deepLink;
 })();`;
 
-const entrar = `<h1>Entrar a Rollo</h1>
+const loginPage = `<h1>Entrar a Rollo</h1>
 <div id="ok" hidden>
 <a id="open" class="btn" href="#">Abrir Rollo</a>
 <p class="muted">Si la app no se abri&oacute;, toc&aacute; el bot&oacute;n. Ten&eacute;s que abrirlo en el iPhone donde est&aacute; Rollo.</p>
@@ -215,16 +215,16 @@ const entrar = `<h1>Entrar a Rollo</h1>
 <p>Este link no es v&aacute;lido. Ped&iacute; un c&oacute;digo nuevo desde la app.</p>
 </div>
 <noscript><p>Este link no es v&aacute;lido. Ped&iacute; un c&oacute;digo nuevo desde la app.</p></noscript>
-<script>${entrarScript}</script>`;
+<script>${loginScript}</script>`;
 
-write("entrar/index.html", page({
+write("login/index.html", page({
   title: "Entrar · Rollo",
   description: "Entrá a Rollo con el link del mail.",
-  body: entrar,
+  body: loginPage,
   analytics: false,
   head: [
     // Only this page's own script runs and nothing can be fetched or sent: the token never leaves the phone.
-    `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-${createHash("sha256").update(entrarScript).digest("base64")}'; style-src 'unsafe-inline'; img-src 'self'; connect-src 'none'; form-action 'none'; base-uri 'none'">`,
+    `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-${createHash("sha256").update(loginScript).digest("base64")}'; style-src 'unsafe-inline'; img-src 'self'; connect-src 'none'; form-action 'none'; base-uri 'none'">`,
     `<meta name="referrer" content="no-referrer">`,
     `<meta name="robots" content="noindex">`,
     "",
@@ -265,7 +265,7 @@ write("friends/index.html", page({
   description: "Te invitaron a ser amigos en Rollo.",
   body: friends,
   head: [
-    // With the analytics beacon (this page only, not /entrar) the CSP also allows Cloudflare's script and its report endpoint.
+    // With the analytics beacon (this page only, not /login) the CSP also allows Cloudflare's script and its report endpoint.
     `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-${createHash("sha256").update(friendsScript).digest("base64")}'${CF_ANALYTICS_TOKEN ? " https://static.cloudflareinsights.com" : ""}; style-src 'unsafe-inline'; img-src 'self'; connect-src ${CF_ANALYTICS_TOKEN ? "https://cloudflareinsights.com" : "'none'"}; form-action 'none'; base-uri 'none'">`,
     `<meta name="referrer" content="no-referrer">`,
     `<meta name="robots" content="noindex">`,
@@ -287,8 +287,8 @@ write(".well-known/apple-app-site-association", JSON.stringify({
     details: [{
       appIDs: ["UXHNAR4HYC.com.juanifraga.rollo.app"],
       components: [
-        { "/": "/entrar", comment: "Magic link from the login email" },
-        { "/": "/entrar/" },
+        { "/": "/login", comment: "Magic link from the login email" },
+        { "/": "/login/" },
         { "/": "/friends", comment: "Friend link" },
         { "/": "/friends/" },
       ],
