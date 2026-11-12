@@ -16,9 +16,9 @@ afterAll(() => rmSync(dist, { recursive: true, force: true }));
 
 const read = (path: string) => readFileSync(join(dist, path), "utf8");
 
-describe("the /soporte page", () => {
+describe("the /support page", () => {
   it("has its own title, the support email and the FAQ", () => {
-    const html = read("soporte/index.html");
+    const html = read("support/index.html");
     expect(html).toContain("<title>Soporte · Rollo</title>");
     expect(html).toContain("mailto:support@rolloproject.com");
     for (const q of [
@@ -32,11 +32,11 @@ describe("the /soporte page", () => {
   });
 
   it("is linked from the footer of every page", () => {
-    expect(read("privacidad/index.html")).toContain('href="/soporte"');
+    expect(read("privacy/index.html")).toContain('href="/support"');
   });
 
   it("is linked from the home through an element with id soporte", () => {
-    expect(read("index.html")).toMatch(/id="soporte"[^>]*href="\/soporte"|href="\/soporte"[^>]*id="soporte"/);
+    expect(read("index.html")).toMatch(/id="soporte"[^>]*href="\/support"|href="\/support"[^>]*id="soporte"/);
   });
 });
 
@@ -137,7 +137,7 @@ describe("the home", () => {
   });
 
   it("keeps the old /#soporte anchor landing on the support link", () => {
-    expect(section("cierre")).toMatch(/id="soporte"[^>]*href="\/soporte"|href="\/soporte"[^>]*id="soporte"/);
+    expect(section("cierre")).toMatch(/id="soporte"[^>]*href="\/support"|href="\/support"[^>]*id="soporte"/);
   });
 
   it("has Open Graph, canonical and theme-color for sharing the link", () => {
@@ -463,20 +463,20 @@ describe("Cloudflare Web Analytics", () => {
     });
     return out;
   };
-  const pages = ["index.html", "soporte/index.html", "privacidad/index.html", "terminos/index.html", "friends/index.html", "entrar/index.html"];
+  const pages = ["index.html", "support/index.html", "privacy/index.html", "terms/index.html", "friends/index.html", "login/index.html"];
 
   it("adds no beacon without a token", () => {
     for (const page of pages) expect(read(page)).not.toContain("cloudflareinsights");
   });
 
-  it("adds the beacon to every page but /entrar when a token is set, widening only the friends CSP", () => {
+  it("adds the beacon to every page but /login when a token is set, widening only the friends CSP", () => {
     const out = build("tok123");
     try {
       const get = (page: string) => readFileSync(join(out, page), "utf8");
       const tag = `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"tok123"}'></script>`;
       for (const page of pages.slice(0, 5)) expect(get(page)).toContain(tag);
-      expect(get("entrar/index.html")).not.toContain("cloudflareinsights");
-      expect(get("entrar/index.html")).toContain("connect-src 'none'");
+      expect(get("login/index.html")).not.toContain("cloudflareinsights");
+      expect(get("login/index.html")).toContain("connect-src 'none'");
       const csp = get("friends/index.html").match(/Content-Security-Policy" content="([^"]+)"/)![1]!;
       expect(csp).toContain("https://static.cloudflareinsights.com");
       expect(csp).toContain("connect-src https://cloudflareinsights.com");

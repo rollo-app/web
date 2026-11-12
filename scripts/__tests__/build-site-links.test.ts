@@ -24,7 +24,7 @@ describe("Universal Links files", () => {
     expect(aasa.applinks.details).toHaveLength(1);
     const detail = aasa.applinks.details[0];
     expect(detail.appIDs).toEqual(["UXHNAR4HYC.com.juanifraga.rollo.app"]);
-    expect(detail.components.map((c: { "/": string }) => c["/"])).toEqual(["/entrar", "/entrar/", "/friends", "/friends/"]);
+    expect(detail.components.map((c: { "/": string }) => c["/"])).toEqual(["/login", "/login/", "/friends", "/friends/"]);
     for (const c of detail.components) expect(c["#"]).toBeUndefined(); // fragments allowed
   });
 

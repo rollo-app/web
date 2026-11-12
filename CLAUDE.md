@@ -4,7 +4,7 @@ Contexto para Claude Code. Respondé en español rioplatense (voseo), conciso y 
 Los textos del sitio también van en rioplatense con voseo.
 
 Es el **sitio público** de Rollo (app iOS de fotos en grupo que nadie ve hasta el revelado): la landing, soporte, los legales
-y las dos páginas que usan los links que manda la app (`/entrar` y `/friends`). Vivía en `rollo-app/mobile` hasta el
+y las dos páginas que usan los links que manda la app (`/login` y `/friends`). Vivía en `rollo-app/mobile` hasta el
 11/11/2026 (la historia vieja está ahí); se separó junto con la mudanza al dominio propio
 (decisión en `rollo-app/backend`, `docs/decisiones/0003-dominio-propio.md`). La app vive en
 [rollo-app/mobile](https://github.com/rollo-app/mobile) y la API en [rollo-app/backend](https://github.com/rollo-app/backend).
@@ -36,12 +36,12 @@ Worker de Cloudflare (`rollo-site`).
 ## Qué hay
 
 Solo archivos estáticos: la home es la **landing** corta (hero con el video del celular + 2 secciones, mapa y revelado,
-con una captura de la app cada una + cierre; badge oficial "Descárgalo en el App Store"), `/soporte` (preguntas frecuentes y
-contacto; `/#soporte` cae en el link a esa página), `/privacidad`, `/terminos`, `/friends` (respaldo del link de amistad:
-código, "Abrir Rollo" y bajar la app, sin redirigir) y `/entrar` (el link mágico del mail; script inline, sin pedidos a ningún
+con una captura de la app cada una + cierre; badge oficial "Descárgalo en el App Store"), `/support` (preguntas frecuentes y
+contacto; `/#soporte` cae en el link a esa página), `/privacy`, `/terms`, `/friends` (respaldo del link de amistad:
+código, "Abrir Rollo" y bajar la app, sin redirigir) y `/login` (el link mágico del mail; script inline, sin pedidos a ningún
 lado, con su CSP; solo abre `rollo://login?token=…&email=…` y borra el fragmento de la barra). Los textos legales se escriben
 **solo** en `docs/legal/*.md`; `scripts/build-site.mjs` arma el HTML en `dist/` (la home vive en `scripts/site/home.mjs`,
-los tokens de color en `scripts/site/tokens.mjs`). Son las URLs de privacidad, soporte (`/soporte`) y marketing de App Store Connect.
+los tokens de color en `scripts/site/tokens.mjs`). Son las URLs de privacidad (`/privacy`), soporte (`/support`) y marketing de App Store Connect. **Las rutas van en inglés**; las viejas en español (`/entrar`, `/soporte`, `/privacidad`, `/terminos`) redirigen (308, `redirects` de `vercel.json`) porque las usan mails ya mandados y builds de la app hasta la 1.3.0.
 
 - **Botón de la home:** la app está en la App Store, así que `STORE_MODE` es `"appstore"` por defecto (`SITE_STORE_MODE=beta`
   vuelve al botón de TestFlight). El botón es el badge oficial de Apple (`scripts/site/app-store-badge.svg`, negro, es-MX, bajado de
@@ -59,14 +59,14 @@ los tokens de color en `scripts/site/tokens.mjs`). Son las URLs de privacidad, s
   `transform: "none"` (lo vuelve una matriz de escala 0); usar `y`.
 - **Analytics:** Cloudflare Web Analytics (sin cookies, solo vistas). El token (público) está en `CF_ANALYTICS_TOKEN` de
   `build-site.mjs`; `SITE_CF_ANALYTICS_TOKEN=""` arma sin beacon (lo usan los tests). El beacon va en todas las páginas menos
-  `/entrar`; en `/friends` el CSP suma `static.cloudflareinsights.com` solo cuando hay token. **Pendiente:** el sitio de Web
+  `/login`; en `/friends` el CSP suma `static.cloudflareinsights.com` solo cuando hay token. **Pendiente:** el sitio de Web
   Analytics está dado de alta para `rollo.juanifraga.com`; sumar `rolloproject.com`.
 - **QR en desktop:** el hero lleva un QR inline (`qrcode`, generado en el build) con "Escaneá con tu iPhone"; solo en pantallas
   anchas con mouse (`hover:hover` + `pointer:fine`).
 - **Smart App Banner:** con `STORE_MODE === "appstore"` la home suma `apple-itunes-app` (app-id 6825843502).
 - **Imagen para compartir:** `npm run og` regenera `scripts/site/og.png` (1200×630, `scripts/build-og.mjs`); se commitea.
 - **Universal Links:** `/.well-known/apple-app-site-association` (`application/json` vía `_headers`) con el app ID
-  `UXHNAR4HYC.com.juanifraga.rollo.app`, para `/entrar` y `/friends`.
+  `UXHNAR4HYC.com.juanifraga.rollo.app`, para `/login` y `/friends`.
 
 Contacto: `support@rolloproject.com` (Email Routing de Cloudflare → Gmail de Juani).
 
