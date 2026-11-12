@@ -13,6 +13,13 @@ y las dos páginas que usan los links que manda la app (`/entrar` y `/friends`).
 
 - **`rolloproject.com`** (canónico; la marca es "Rollo Project": `SITE_URL` en `scripts/build-site.mjs`, `og:url`, `og:image`, links entre páginas).
 - **`somosrollo.com`** (primer dominio propio, usado unas horas el 11/11/2026): redirige a `rolloproject.com` desde Vercel.
+- **`rollo.juanifraga.com`** (el dominio de antes, que tienen fijo los builds de la app hasta la 1.3.0): **redirige** a
+  `rolloproject.com` desde Vercel (308), manteniendo la ruta y el fragmento, así siguen andando los links de amistad, el
+  link mágico de mails viejos y los legales que abren esos builds. Como Apple no sigue redirecciones para bajar el
+  `apple-app-site-association`, en esos builds los links abren primero Safari y la página abre la app (`rollo://`), en vez
+  de abrirla directo. Se puede apagar del todo cuando casi nadie use builds anteriores a la 1.4.0. El DNS sigue en
+  Cloudflare, con los registros en "DNS only", apuntando a Vercel. Hasta el 11/11/2026 lo servía el Worker `rollo-site`.
+- **`somosrollo.com`** (primer dominio propio, usado unas horas el 11/11/2026): redirige a `rolloproject.com` desde Vercel.
 - **`rollo.juanifraga.com`** sirve **lo mismo** y no se saca: los builds de la app ya instalados declaran ese dominio para
   Universal Links, y los mails y links de amistad ya mandados apuntan ahí. Los dos son dominios del mismo proyecto de Vercel
   y publican el mismo `/.well-known/apple-app-site-association`. El DNS sigue en Cloudflare (registros en "DNS only", sin el
