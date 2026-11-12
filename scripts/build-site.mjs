@@ -106,7 +106,7 @@ const page = ({ title, description, body, header = true, head = "", css: styles 
 ${head}</head>
 <body>
 <div class="wrap${wide ? " wide" : ""}">
-${header ? `<header class="top"><a href="/">${logo(28)}<span>Rollo</span></a></header>` : ""}
+${header ? `<header class="top"><a href="/">${logo(28)}<span>Rollo Project</span></a></header>` : ""}
 <main>
 ${body}
 </main>
@@ -136,7 +136,7 @@ const home = homeHtml({
   qr: { svg: qrSvg(STORE_MODE === "appstore" ? APP_STORE_URL : TESTFLIGHT_URL), url: STORE_MODE === "appstore" ? APP_STORE_URL : TESTFLIGHT_URL },
 });
 write("index.html", page({
-  title: "Rollo · Fotos en grupo para iPhone",
+  title: "Rollo Project · Fotos en grupo para iPhone",
   description: "Un rollo de fotos compartido con tus amigos para el viaje, el casamiento o la última semana de facu. Nadie las ve hasta el revelado.",
   body: home.body,
   head: home.head,
@@ -175,17 +175,17 @@ const soporte = `<h2>Soporte</h2>
 </div>`;
 
 write("support/index.html", page({
-  title: "Soporte · Rollo",
+  title: "Soporte · Rollo Project",
   description: "Soporte de Rollo: preguntas frecuentes y contacto.",
   body: soporte,
 }));
 write("privacy/index.html", page({
-  title: "Política de privacidad · Rollo",
+  title: "Política de privacidad · Rollo Project",
   description: "Política de privacidad de Rollo.",
   body: legal("privacidad"),
 }));
 write("terms/index.html", page({
-  title: "Términos de uso · Rollo",
+  title: "Términos de uso · Rollo Project",
   description: "Términos de uso de Rollo.",
   body: legal("terminos"),
 }));
@@ -218,7 +218,7 @@ const loginPage = `<h1>Entrar a Rollo</h1>
 <script>${loginScript}</script>`;
 
 write("login/index.html", page({
-  title: "Entrar · Rollo",
+  title: "Entrar · Rollo Project",
   description: "Entrá a Rollo con el link del mail.",
   body: loginPage,
   analytics: false,
@@ -261,7 +261,7 @@ ${friendsInvalid}
 <script>${friendsScript}</script>`;
 
 write("friends/index.html", page({
-  title: "Sumate a Rollo · Rollo",
+  title: "Sumate a Rollo · Rollo Project",
   description: "Te invitaron a ser amigos en Rollo.",
   body: friends,
   head: [
@@ -297,7 +297,7 @@ write(".well-known/apple-app-site-association", JSON.stringify({
 }, null, 2) + "\n");
 // Cloudflare Workers Static Assets: the extensionless AASA file must be served as JSON.
 write("404.html", page({
-  title: "No encontrada · Rollo",
+  title: "No encontrada · Rollo Project",
   description: "Esta página no existe.",
   body: `<h1>No encontramos esa p&aacute;gina</h1><p><a href="/">Volver al inicio</a></p>`,
 }));

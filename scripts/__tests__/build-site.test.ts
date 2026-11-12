@@ -128,3 +128,31 @@ describe("support email", () => {
     }
   });
 });
+
+describe("brand", () => {
+  const pages = ["index.html", "support/index.html", "privacy/index.html", "terms/index.html", "friends/index.html", "login/index.html", "404.html"];
+  const read = (page: string) => readFileSync(join(dist, page), "utf8");
+
+  it("every page title names Rollo Project", () => {
+    for (const page of pages) expect(read(page)).toMatch(/<title>[^<]*Rollo Project[^<]*<\/title>/);
+  });
+
+  it("the header next to the logo says Rollo Project", () => {
+    for (const page of pages) expect(read(page)).toContain("<span>Rollo Project</span>");
+  });
+
+  it("the home share card is titled Rollo Project", () => {
+    expect(read("index.html")).toContain('<meta property="og:title" content="Rollo Project · Sacá la foto. Mirala después.">');
+  });
+
+  it("the legal texts are titled after Rollo Project and name it as the responsible party", () => {
+    expect(read("privacy/index.html")).toContain("<h1>Política de privacidad de Rollo Project</h1>");
+    expect(read("terms/index.html")).toContain("<h1>Términos de uso de Rollo Project</h1>");
+    expect(read("privacy/index.html")).toContain("Rollo Project es desarrollada y operada por");
+  });
+
+  it("the app keeps its own name where the text talks about the app", () => {
+    expect(read("friends/index.html")).toContain("Abrir Rollo");
+    expect(read("login/index.html")).toContain("Abrir Rollo");
+  });
+});
