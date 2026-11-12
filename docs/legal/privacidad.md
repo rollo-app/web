@@ -6,7 +6,7 @@ Rollo es una app para sacar fotos en grupo que nadie ve hasta el revelado. Acá 
 
 ## 1. Quién es responsable
 
-Rollo es desarrollada y operada por Juan Ignacio Fraga ("yo", "Rollo"), desde Uruguay. Tratamos tus datos según la Ley N.º 18.331 de Protección de Datos Personales de Uruguay. Para cualquier duda o pedido sobre tus datos escribí a **soporte@somosrollo.com**.
+Rollo es desarrollada y operada por Juan Ignacio Fraga ("yo", "Rollo"), desde Uruguay. Tratamos tus datos según la Ley N.º 18.331 de Protección de Datos Personales de Uruguay. Para cualquier duda o pedido sobre tus datos escribí a **support@rolloproject.com**.
 
 ## 2. Qué datos guardamos
 
@@ -87,7 +87,7 @@ Compartimos datos con terceros solo en la medida necesaria para dar el servicio:
 - **Apple**: si entrás con Apple, verifica tu cuenta y nos da los datos de arriba. También App Store, TestFlight, la entrega de las notificaciones y el sistema del iPhone. Rige su propia política.
 - **Google**: si entrás con Google, verifica tu cuenta y nos da los datos de arriba; sabe que usaste tu cuenta de Google para entrar a Rollo. Rige su propia política.
 - **OpenFreeMap**: provee los mapas. Cuando mirás o descargás mapas, tu celular se conecta directo a sus servidores, que ven tu dirección IP y la zona que mirás. No les mandamos tu cuenta ni tus fotos.
-- **Vercel**: aloja este sitio (somosrollo.com), que recibe la IP de quien lo visita. En el sitio usamos Cloudflare Web Analytics, que cuenta visitas sin cookies y sin identificarte.
+- **Vercel**: aloja este sitio (rolloproject.com), que recibe la IP de quien lo visita. En el sitio usamos Cloudflare Web Analytics, que cuenta visitas sin cookies y sin identificarte.
 
 ## 7. Dónde se guardan y por cuánto tiempo
 
@@ -116,7 +116,7 @@ Podés acceder, corregir y borrar tus datos. Nombre, @usuario, foto y descripci�
 
 Lo que ya descargaste en tu celular o en el de otros miembros, no lo podemos borrar. Si salís de un rollo ("Salirme del rollo") sin borrar la cuenta, **tus fotos quedan en ese rollo**; si querés que se borren, borrá la cuenta o pedínoslo por mail. Si entraste con Apple, también podés dejar de usar Rollo con tu Apple ID desde los ajustes de tu iPhone (tu Apple ID → Iniciar sesión con Apple).
 
-Para ejercer tus derechos (acceso, rectificación, supresión, oposición) o hacer cualquier consulta, escribí a **soporte@somosrollo.com**. También podés acudir a la Unidad Reguladora y de Control de Datos Personales (URCDP) de Uruguay; si sos de Argentina, a la Agencia de Acceso a la Información Pública (AAIP).
+Para ejercer tus derechos (acceso, rectificación, supresión, oposición) o hacer cualquier consulta, escribí a **support@rolloproject.com**. También podés acudir a la Unidad Reguladora y de Control de Datos Personales (URCDP) de Uruguay; si sos de Argentina, a la Agencia de Acceso a la Información Pública (AAIP).
 
 ## 9. Menores
 
@@ -132,4 +132,4 @@ Si cambiamos esta política, actualizamos la fecha de arriba y, si es un cambio 
 
 ## 12. Contacto
 
-**soporte@somosrollo.com**
+**support@rolloproject.com**

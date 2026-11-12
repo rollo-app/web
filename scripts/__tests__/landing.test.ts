@@ -20,7 +20,7 @@ describe("the /soporte page", () => {
   it("has its own title, the support email and the FAQ", () => {
     const html = read("soporte/index.html");
     expect(html).toContain("<title>Soporte · Rollo</title>");
-    expect(html).toContain("mailto:soporte@somosrollo.com");
+    expect(html).toContain("mailto:support@rolloproject.com");
     for (const q of [
       "&iquest;C&oacute;mo me sumo a un rollo?",
       "&iquest;C&oacute;mo borro mi cuenta?",
@@ -42,7 +42,7 @@ describe("the /soporte page", () => {
 
 const TESTFLIGHT = "https://testflight.apple.com/join/Q557gZkR";
 const APP_STORE = "https://apps.apple.com/app/id6825843502";
-const SITE = "https://somosrollo.com";
+const SITE = "https://rolloproject.com";
 const visibleText = (html: string) =>
   html
     .replace(/<head>[\s\S]*?<\/head>/, "")

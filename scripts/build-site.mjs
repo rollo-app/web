@@ -14,7 +14,7 @@ const dist = process.env.SITE_DIST ?? join(root, "dist");
 
 // Canonical URL (og:url, og:image, links between pages). rollo.juanifraga.com serves the same site too (site/wrangler.jsonc):
 // old app builds, sent emails and shared friend links point there.
-const SITE_URL = "https://somosrollo.com";
+const SITE_URL = "https://rolloproject.com";
 // The app is on the App Store: the button is the official badge (scripts/site/app-store-badge.svg, from Apple's marketing
 // toolbox, es-MX). The deploy does not set SITE_STORE_MODE, so this default is what ships; "beta" brings back TestFlight.
 /** @type {"beta" | "appstore"} */
@@ -75,7 +75,7 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:15px}
 .muted{color:var(--muted)}
 `;
 
-const footer = `<footer><p>&copy; 2026 Somos Rollo &middot; Uruguay</p>
+const footer = `<footer><p>&copy; 2026 Rollo Project &middot; Uruguay</p>
 <p><a href="/privacidad">Privacidad</a> &middot; <a href="/terminos">T&eacute;rminos</a> &middot; <a href="/soporte">Soporte</a></p></footer>`;
 
 const beacon = CF_ANALYTICS_TOKEN
@@ -162,14 +162,14 @@ for (const name of ["hero.mp4", "hero.webm", "hero-poster.jpg", "map.jpg", "reve
 }
 copyFileSync(join(root, "scripts", "site", "og.png"), join(dist, "og.png"));
 const soporte = `<h2>Soporte</h2>
-<p>Escribinos a <a href="mailto:soporte@somosrollo.com">soporte@somosrollo.com</a> y te respondemos.</p>
+<p>Escribinos a <a href="mailto:support@rolloproject.com">support@rolloproject.com</a> y te respondemos.</p>
 <div class="faq">
 <h3>&iquest;C&oacute;mo me sumo a un rollo?</h3>
 <p>Con el c&oacute;digo de 6 caracteres que te pasa alguien del rollo. Lo ingres&aacute;s en la app y listo.</p>
 <h3>&iquest;C&oacute;mo borro mi cuenta?</h3>
 <p>Desde Perfil &rarr; Ajustes &rarr; Borrar cuenta. Es definitivo: se borran tus fotos y videos de todos los rollos, tu membres&iacute;a, tus amistades, tu foto de perfil y tu email. Los detalles est&aacute;n en la <a href="/privacidad">pol&iacute;tica de privacidad</a>.</p>
 <h3>&iquest;C&oacute;mo denuncio una foto o bloqueo a alguien?</h3>
-<p>Desde la app, en la foto o en el perfil de la persona. Tambi&eacute;n nos pod&eacute;s escribir a <a href="mailto:soporte@somosrollo.com">soporte@somosrollo.com</a>.</p>
+<p>Desde la app, en la foto o en el perfil de la persona. Tambi&eacute;n nos pod&eacute;s escribir a <a href="mailto:support@rolloproject.com">support@rolloproject.com</a>.</p>
 <h3>&iquest;Hay versi&oacute;n para Android?</h3>
 <p>Por ahora Rollo es solo para iPhone.</p>
 </div>`;
@@ -189,7 +189,7 @@ write("terminos/index.html", page({
   description: "Términos de uso de Rollo.",
   body: legal("terminos"),
 }));
-// The login email's button: https://somosrollo.com/entrar#t=<token>&e=<email>. The fragment never reaches
+// The login email's button: https://rolloproject.com/entrar#t=<token>&e=<email>. The fragment never reaches
 // any server; this page only hands it to the app (rollo://login) and wipes it from the address bar.
 const entrarScript = `(function () {
   var params = new URLSearchParams(location.hash.slice(1));
@@ -230,7 +230,7 @@ write("entrar/index.html", page({
     "",
   ].join("\n"),
 }));
-// Friend link: https://somosrollo.com/friends#<CODE>. With the app installed (production build) iOS opens it
+// Friend link: https://rolloproject.com/friends#<CODE>. With the app installed (production build) iOS opens it
 // through Universal Links and this page is never shown; it is the fallback for people without the app, old builds
 // and computers. No auto-redirect (Safari errors if the app is missing) and the fragment stays: the code isn't secret.
 const friendsScript = `(function () {
