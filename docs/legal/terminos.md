@@ -39,7 +39,7 @@ Tolerancia cero significa que si lo hacés, el contenido se saca y se suspende o
 
 - Podés **denunciar una foto o una persona** y **bloquear a alguien** desde la app.
 - **Revisamos las denuncias dentro de las 24 horas.** Si el contenido infringe estos términos, lo sacamos y también sacamos a quien lo subió.
-- También podés escribirnos a **soporte@rolloproject.com**.
+- También podés escribirnos a **support@rolloproject.com**.
 - El admin de un rollo puede borrar fotos antes del revelado y sacar miembros de su rollo.
 
 ## 6. Uso aceptable
@@ -68,4 +68,4 @@ Estos términos se rigen por las leyes de la **República Oriental del Uruguay**
 
 ## 12. Contacto
 
-Juan Ignacio Fraga — **soporte@rolloproject.com**
+Juan Ignacio Fraga — **support@rolloproject.com**

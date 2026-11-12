@@ -162,14 +162,14 @@ for (const name of ["hero.mp4", "hero.webm", "hero-poster.jpg", "map.jpg", "reve
 }
 copyFileSync(join(root, "scripts", "site", "og.png"), join(dist, "og.png"));
 const soporte = `<h2>Soporte</h2>
-<p>Escribinos a <a href="mailto:soporte@rolloproject.com">soporte@rolloproject.com</a> y te respondemos.</p>
+<p>Escribinos a <a href="mailto:support@rolloproject.com">support@rolloproject.com</a> y te respondemos.</p>
 <div class="faq">
 <h3>&iquest;C&oacute;mo me sumo a un rollo?</h3>
 <p>Con el c&oacute;digo de 6 caracteres que te pasa alguien del rollo. Lo ingres&aacute;s en la app y listo.</p>
 <h3>&iquest;C&oacute;mo borro mi cuenta?</h3>
 <p>Desde Perfil &rarr; Ajustes &rarr; Borrar cuenta. Es definitivo: se borran tus fotos y videos de todos los rollos, tu membres&iacute;a, tus amistades, tu foto de perfil y tu email. Los detalles est&aacute;n en la <a href="/privacidad">pol&iacute;tica de privacidad</a>.</p>
 <h3>&iquest;C&oacute;mo denuncio una foto o bloqueo a alguien?</h3>
-<p>Desde la app, en la foto o en el perfil de la persona. Tambi&eacute;n nos pod&eacute;s escribir a <a href="mailto:soporte@rolloproject.com">soporte@rolloproject.com</a>.</p>
+<p>Desde la app, en la foto o en el perfil de la persona. Tambi&eacute;n nos pod&eacute;s escribir a <a href="mailto:support@rolloproject.com">support@rolloproject.com</a>.</p>
 <h3>&iquest;Hay versi&oacute;n para Android?</h3>
 <p>Por ahora Rollo es solo para iPhone.</p>
 </div>`;
