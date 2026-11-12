@@ -93,7 +93,7 @@ ${shot("revelado", "El revelado del rollo Europa", stillPhone("/reveal.jpg"))}
 <h2 class="serif">Estrenalo en tu próximo viaje.</h2>
 <p>Tus fotos solo las ven las personas de tu rollo.</p>
 ${button}
-<p class="help">¿Tenés dudas? <a id="soporte" href="/soporte">Soporte y preguntas frecuentes</a></p>
+<p class="help">¿Tenés dudas? <a id="soporte" href="/support">Soporte y preguntas frecuentes</a></p>
 </div>
 </section>`;
 
