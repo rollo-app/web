@@ -15,6 +15,16 @@
       ]
     }
   ],
+  "rewrites": [
+    {
+      "source": "/join/:code",
+      "destination": "/join/index.html"
+    },
+    {
+      "source": "/join/:code/",
+      "destination": "/join/index.html"
+    }
+  ],
   "redirects": [
     {
       "source": "/entrar",

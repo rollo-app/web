@@ -4,7 +4,7 @@ Contexto para Claude Code. Respondé en español rioplatense (voseo), conciso y 
 Los textos del sitio también van en rioplatense con voseo.
 
 Es el **sitio público** de Rollo (app iOS de fotos en grupo que nadie ve hasta el revelado): la landing, soporte, los legales
-y las dos páginas que usan los links que manda la app (`/login` y `/friends`). Vivía en `rollo-app/mobile` hasta el
+y las dos páginas que usan los links que manda la app (`/login`, `/friends` y `/join/<CÓDIGO>`). Vivía en `rollo-app/mobile` hasta el
 11/11/2026 (la historia vieja está ahí); se separó junto con la mudanza al dominio propio
 (decisión en `rollo-app/backend`, `docs/decisiones/0003-dominio-propio.md`). La app vive en
 [rollo-app/mobile](https://github.com/rollo-app/mobile) y la API en [rollo-app/backend](https://github.com/rollo-app/backend).
@@ -57,6 +57,7 @@ los tokens de color en `scripts/site/tokens.mjs`). Son las URLs de privacidad (`
 - **Animaciones:** Motion (`animate`, `inView`) empaquetado con esbuild en `/motion.js` (servido desde el sitio, sin CDN) +
   `scripts/site/landing.js`. Con "Reducir movimiento" o sin JS la página queda en su estado final. Ojo: en Motion no animar a
   `transform: "none"` (lo vuelve una matriz de escala 0); usar `y`.
+- **Evento `/join/<CÓDIGO>`:** `vercel.json` reescribe `/join/:code` a `join/index.html`; el script (con hash en el CSP) lee el código del path, muestra código y "Abrir Rollo" (`rollo://join/<CÓDIGO>`) y pide `GET https://api.rolloproject.com/events/<CÓDIGO>` (nombre, portada, `revealed`; 404 = "no es de un evento"). El CSP permite solo ese `connect-src` e `img-src`. Sin JS solo se ve el link a la App Store (el código está en el path, no se puede leer sin script).
 - **Analytics:** Cloudflare Web Analytics (sin cookies, solo vistas). El token (público) está en `CF_ANALYTICS_TOKEN` de
   `build-site.mjs`; `SITE_CF_ANALYTICS_TOKEN=""` arma sin beacon (lo usan los tests). El beacon va en todas las páginas menos
   `/login`; en `/friends` el CSP suma `static.cloudflareinsights.com` solo cuando hay token. **Pendiente:** el sitio de Web
@@ -66,7 +67,7 @@ los tokens de color en `scripts/site/tokens.mjs`). Son las URLs de privacidad (`
 - **Smart App Banner:** con `STORE_MODE === "appstore"` la home suma `apple-itunes-app` (app-id 6825843502).
 - **Imagen para compartir:** `npm run og` regenera `scripts/site/og.png` (1200×630, `scripts/build-og.mjs`); se commitea.
 - **Universal Links:** `/.well-known/apple-app-site-association` (`application/json` vía `_headers`) con el app ID
-  `UXHNAR4HYC.com.juanifraga.rollo.app`, para `/login` y `/friends`.
+  `UXHNAR4HYC.com.juanifraga.rollo.app`, para `/login`, `/friends` y `/join/*`.
 
 Contacto: `support@rolloproject.com` (Email Routing de Cloudflare → Gmail de Juani).
 
