@@ -106,7 +106,7 @@ const page = ({ title, description, body, header = true, head = "", css: styles 
 ${head}</head>
 <body>
 <div class="wrap${wide ? " wide" : ""}">
-${header ? `<header class="top"><a href="/">${logo(28)}<span>Rollo</span></a></header>` : ""}
+${header ? `<header class="top"><a href="/">${logo(28)}<span>Rollo Project</span></a></header>` : ""}
 <main>
 ${body}
 </main>
@@ -136,7 +136,7 @@ const home = homeHtml({
   qr: { svg: qrSvg(STORE_MODE === "appstore" ? APP_STORE_URL : TESTFLIGHT_URL), url: STORE_MODE === "appstore" ? APP_STORE_URL : TESTFLIGHT_URL },
 });
 write("index.html", page({
-  title: "Rollo · Fotos en grupo para iPhone",
+  title: "Rollo Project · Fotos en grupo para iPhone",
   description: "Un rollo de fotos compartido con tus amigos para el viaje, el casamiento o la última semana de facu. Nadie las ve hasta el revelado.",
   body: home.body,
   head: home.head,
@@ -175,17 +175,17 @@ const soporte = `<h2>Soporte</h2>
 </div>`;
 
 write("support/index.html", page({
-  title: "Soporte · Rollo",
+  title: "Soporte · Rollo Project",
   description: "Soporte de Rollo: preguntas frecuentes y contacto.",
   body: soporte,
 }));
 write("privacy/index.html", page({
-  title: "Política de privacidad · Rollo",
+  title: "Política de privacidad · Rollo Project",
   description: "Política de privacidad de Rollo.",
   body: legal("privacidad"),
 }));
 write("terms/index.html", page({
-  title: "Términos de uso · Rollo",
+  title: "Términos de uso · Rollo Project",
   description: "Términos de uso de Rollo.",
   body: legal("terminos"),
 }));
@@ -218,7 +218,7 @@ const loginPage = `<h1>Entrar a Rollo</h1>
 <script>${loginScript}</script>`;
 
 write("login/index.html", page({
-  title: "Entrar · Rollo",
+  title: "Entrar · Rollo Project",
   description: "Entrá a Rollo con el link del mail.",
   body: loginPage,
   analytics: false,
@@ -261,7 +261,7 @@ ${friendsInvalid}
 <script>${friendsScript}</script>`;
 
 write("friends/index.html", page({
-  title: "Sumate a Rollo · Rollo",
+  title: "Sumate a Rollo · Rollo Project",
   description: "Te invitaron a ser amigos en Rollo.",
   body: friends,
   head: [
@@ -281,6 +281,93 @@ write("friends/index.html", page({
     "",
   ].join("\n"),
 }));
+// Event link: https://rolloproject.com/join/<CODE> (vercel.json rewrites every /join/:code to this one file). With the app
+// installed iOS opens it through Universal Links and this page is never shown. Otherwise the page reads the code from
+// the path and asks the public API for the event (name, cover); if that fails it still shows the code and the store link.
+const API_URL = "https://api.rolloproject.com";
+const joinScript = `(function () {
+  var API = ${JSON.stringify(API_URL)};
+  var $ = function (id) { return document.getElementById(id); };
+  var match = /^\\/join\\/([A-Za-z0-9]{6})\\/?$/.exec(location.pathname);
+  if (!match) {
+    $("bad").hidden = false;
+    return;
+  }
+  var code = match[1].toUpperCase();
+  $("code").textContent = code;
+  $("open").href = "rollo://join/" + code;
+  $("ok").hidden = false;
+  fetch(API + "/events/" + code).then(function (res) {
+    if (res.status === 404) {
+      $("ok").hidden = true;
+      $("bad").hidden = false;
+      return null;
+    }
+    return res.ok ? res.json() : null;
+  }).then(function (event) {
+    if (!event || typeof event.name !== "string") return;
+    $("name").textContent = event.name;
+    $("name").hidden = false;
+    $("title").hidden = true;
+    if (typeof event.coverUrl === "string" && /^\\/covers\\/[A-Za-z0-9._\\/-]+$/.test(event.coverUrl) && event.coverUrl.indexOf("..") === -1) {
+      $("cover").src = API + event.coverUrl;
+      $("cover").hidden = false;
+    }
+    if (event.revealed) {
+      $("pick").hidden = true;
+      $("revealed").hidden = false;
+    }
+  }).catch(function () {});
+})();`;
+
+const joinInvalid = `<p>Este c&oacute;digo no es de un evento.</p>`;
+const joinStore = STORE_MODE === "appstore"
+  ? `<a class="store" href="${storeHref}"><img src="/app-store-badge.svg" alt="Desc&aacute;rgalo en el App Store" width="156" height="52"></a>`
+  : `<a href="${storeHref}">Bajar Rollo</a>`;
+const joinPage = `<img id="cover" class="cover" alt="" hidden>
+<h1 id="title">Te invitaron a un evento en Rollo</h1>
+<h1 id="name" hidden></h1>
+<div id="ok" hidden>
+<p id="pick">Abr&iacute; Rollo para elegir tu grupo.</p>
+<p id="revealed" hidden>Este evento ya se revel&oacute;.</p>
+<a id="open" class="btn" href="#">Abrir Rollo</a>
+<p>${joinStore}</p>
+<p class="muted">Si reci&eacute;n la instalaste, entr&aacute; con este c&oacute;digo en &laquo;Unirme&raquo;:</p>
+<p class="code" id="code"></p>
+</div>
+<div id="bad" hidden>
+${joinInvalid}
+<p>${joinStore}</p>
+</div>
+<noscript><p>Abr&iacute; este link en el iPhone donde ten&eacute;s Rollo, o bajate la app y entr&aacute; con el c&oacute;digo que te pasaron en &laquo;Unirme&raquo;.</p><p>${joinStore}</p></noscript>
+<script>${joinScript}</script>`;
+
+// No analytics beacon here (like /login): the event code in the path is a join credential and must not reach page-view URLs.
+write("join/index.html", page({
+  analytics: false,
+  title: "Sumate al evento · Rollo Project",
+  description: "Te invitaron a un evento en Rollo.",
+  body: joinPage,
+  css: `${css}.cover[hidden]{display:none}
+.cover{display:block;width:100%;max-height:320px;object-fit:cover;border-radius:16px;margin:0 0 20px}
+.code{font:700 40px/1.1 ui-monospace,Menlo,monospace;letter-spacing:.12em;margin:0 0 14px}
+.store img{display:block}`,
+  head: [
+    // The one network call is the public events API; the cover comes from the same host.
+    `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-${createHash("sha256").update(joinScript).digest("base64")}'; style-src 'unsafe-inline'; img-src 'self' ${API_URL}; connect-src ${API_URL}; form-action 'none'; base-uri 'none'">`,
+    `<meta name="referrer" content="no-referrer">`,
+    `<meta name="robots" content="noindex">`,
+    `<meta property="og:type" content="website">`,
+    `<meta property="og:url" content="${SITE_URL}/join">`,
+    `<meta property="og:title" content="Te invitaron a un evento en Rollo">`,
+    `<meta property="og:description" content="Sumate al evento y elegí tu grupo.">`,
+    `<meta property="og:image" content="${SITE_URL}/og.png">`,
+    `<meta property="og:image:width" content="1200">`,
+    `<meta property="og:image:height" content="630">`,
+    `<meta name="twitter:card" content="summary_large_image">`,
+    "",
+  ].join("\n"),
+}));
 // Universal Links: only the production app (team + bundle id). Fragments are allowed by default.
 write(".well-known/apple-app-site-association", JSON.stringify({
   applinks: {
@@ -291,13 +378,14 @@ write(".well-known/apple-app-site-association", JSON.stringify({
         { "/": "/login/" },
         { "/": "/friends", comment: "Friend link" },
         { "/": "/friends/" },
+        { "/": "/join/*", comment: "Event link" },
       ],
     }],
   },
 }, null, 2) + "\n");
 // Cloudflare Workers Static Assets: the extensionless AASA file must be served as JSON.
 write("404.html", page({
-  title: "No encontrada · Rollo",
+  title: "No encontrada · Rollo Project",
   description: "Esta página no existe.",
   body: `<h1>No encontramos esa p&aacute;gina</h1><p><a href="/">Volver al inicio</a></p>`,
 }));

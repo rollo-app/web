@@ -19,7 +19,7 @@ const read = (path: string) => readFileSync(join(dist, path), "utf8");
 describe("the /support page", () => {
   it("has its own title, the support email and the FAQ", () => {
     const html = read("support/index.html");
-    expect(html).toContain("<title>Soporte · Rollo</title>");
+    expect(html).toContain("<title>Soporte · Rollo Project</title>");
     expect(html).toContain("mailto:support@rolloproject.com");
     for (const q of [
       "&iquest;C&oacute;mo me sumo a un rollo?",
