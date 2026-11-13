@@ -342,16 +342,19 @@ ${joinInvalid}
 <noscript><p>Abr&iacute; este link en el iPhone donde ten&eacute;s Rollo, o bajate la app y entr&aacute; con el c&oacute;digo que te pasaron en &laquo;Unirme&raquo;.</p><p>${joinStore}</p></noscript>
 <script>${joinScript}</script>`;
 
+// No analytics beacon here (like /login): the event code in the path is a join credential and must not reach page-view URLs.
 write("join/index.html", page({
+  analytics: false,
   title: "Sumate al evento · Rollo Project",
   description: "Te invitaron a un evento en Rollo.",
   body: joinPage,
-  css: `${css}.cover{display:block;width:100%;max-height:320px;object-fit:cover;border-radius:16px;margin:0 0 20px}
+  css: `${css}.cover[hidden]{display:none}
+.cover{display:block;width:100%;max-height:320px;object-fit:cover;border-radius:16px;margin:0 0 20px}
 .code{font:700 40px/1.1 ui-monospace,Menlo,monospace;letter-spacing:.12em;margin:0 0 14px}
 .store img{display:block}`,
   head: [
     // The one network call is the public events API; the cover comes from the same host.
-    `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-${createHash("sha256").update(joinScript).digest("base64")}'${CF_ANALYTICS_TOKEN ? " https://static.cloudflareinsights.com" : ""}; style-src 'unsafe-inline'; img-src 'self' ${API_URL}; connect-src ${API_URL}${CF_ANALYTICS_TOKEN ? " https://cloudflareinsights.com" : ""}; form-action 'none'; base-uri 'none'">`,
+    `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-${createHash("sha256").update(joinScript).digest("base64")}'; style-src 'unsafe-inline'; img-src 'self' ${API_URL}; connect-src ${API_URL}; form-action 'none'; base-uri 'none'">`,
     `<meta name="referrer" content="no-referrer">`,
     `<meta name="robots" content="noindex">`,
     `<meta property="og:type" content="website">`,

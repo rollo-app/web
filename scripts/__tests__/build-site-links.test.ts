@@ -163,7 +163,24 @@ describe("the /join page (event link)", () => {
     expect(csp).toContain("connect-src https://api.rolloproject.com");
     expect(csp).toContain("img-src 'self' https://api.rolloproject.com");
     expect(csp).toContain("default-src 'none'");
+    expect(csp).not.toContain("cloudflare");
     expect(h).toContain('<meta name="robots" content="noindex">');
+  });
+
+  it("has no analytics beacon even when a token is set (the code in the path is a credential)", () => {
+    const withToken = mkdtempSync(join(tmpdir(), "rollo-site-join-"));
+    try {
+      execFileSync(process.execPath, [join(__dirname, "..", "build-site.mjs")], { env: { ...process.env, SITE_DIST: withToken, SITE_CF_ANALYTICS_TOKEN: "tok" } });
+      const h = readFileSync(join(withToken, "join", "index.html"), "utf8");
+      expect(h).not.toContain("cloudflareinsights");
+      expect(h).not.toContain("data-cf-beacon");
+    } finally {
+      rmSync(withToken, { recursive: true, force: true });
+    }
+  });
+
+  it("keeps the empty cover out of the layout (display:none for [hidden] beats .cover display)", () => {
+    expect(joinHtml()).toContain(".cover[hidden]{display:none}");
   });
 
   it("rewrites /join/:code to the page in vercel.json", () => {
