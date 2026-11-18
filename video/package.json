@@ -10,7 +10,8 @@
     "stills": "node scripts/render.mjs --stills",
     "photos": "node scripts/prepare-photos.mjs",
     "reel:audio": "node scripts/reel-audio.mjs",
-    "reel": "npm run reel:audio && remotion render src/index.ts Reel out/reel-que-es-rollo.mp4 --codec h264 --crf 18 --pixel-format yuv420p --audio-codec aac"
+    "reel": "npm run reel:audio && remotion render src/index.ts Reel out/reel-que-es-rollo.mp4 --codec h264 --crf 18 --pixel-format yuv420p --audio-codec aac",
+    "carousels": "node scripts/render-carousels.mjs"
   },
   "dependencies": {
     "@remotion/cli": "4.0.539",
