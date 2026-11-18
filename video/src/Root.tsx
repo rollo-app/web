@@ -10,6 +10,7 @@ import { RevealScene } from "./scenes/RevealScene";
 import { ProfileScene } from "./scenes/ProfileScene";
 import { PhotosProvider } from "./data/photos-context";
 import { Playground } from "./ui/Playground";
+import { REEL_FRAMES, Reel } from "./reel/Reel";
 
 const dev = (Scene: () => React.JSX.Element) => ({ photos }: { photos: PhotoRecord[] }) => (
   <PhotosProvider photos={photos}><Scene /></PhotosProvider>
@@ -34,6 +35,16 @@ export const Root = () => (
     width={540}
     height={1170}
     durationInFrames={660}
+    defaultProps={{ photos: [] as PhotoRecord[] }}
+    calculateMetadata={loadProps}
+  />
+  <Composition
+    id="Reel"
+    component={Reel}
+    fps={30}
+    width={1080}
+    height={1920}
+    durationInFrames={REEL_FRAMES}
     defaultProps={{ photos: [] as PhotoRecord[] }}
     calculateMetadata={loadProps}
   />

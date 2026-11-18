@@ -26,7 +26,7 @@ const Chip = ({ label, active }: { label: string; active?: boolean }) => (
   </div>
 );
 
-const Viewfinder = ({ frame }: { frame: number }) => {
+const Viewfinder = ({ frame, photoId }: { frame: number; photoId: string }) => {
   const { fps } = useVideoConfig();
   const zoom = interpolate(frame, [0, SHUTTER_AT], [1, 1.04], clamp);
   const press = interpolate(frame, [SHUTTER_AT - 2, SHUTTER_AT + 1, SHUTTER_AT + 5], [1, 0.9, 1], clamp);
@@ -35,7 +35,7 @@ const Viewfinder = ({ frame }: { frame: number }) => {
     <AbsoluteFill style={{ opacity: enter }}>
       <div style={{ position: "absolute", top: BOX_TOP, left: 0, width: 540, height: BOX_H, overflow: "hidden" }}>
         <div style={{ width: "100%", height: "100%", transform: `scale(${zoom})` }}>
-          <LivePhoto id={CAMERA_VIEW} shutterAt={SHUTTER_AT} />
+          <LivePhoto id={photoId} shutterAt={SHUTTER_AT} />
         </div>
         <div style={{ position: "absolute", bottom: 20, left: 0, right: 0, display: "flex", justifyContent: "center", alignItems: "center", gap: 14 }}>
           <Chip label="0,5" />
@@ -50,7 +50,7 @@ const Viewfinder = ({ frame }: { frame: number }) => {
   );
 };
 
-const CaptionScreen = ({ frame }: { frame: number }) => {
+const CaptionScreen = ({ frame, photoId }: { frame: number; photoId: string }) => {
   const { fps } = useVideoConfig();
   const local = frame - CAPTION_AT;
   const enter = spring({ frame: local, fps, config: { damping: 200 }, durationInFrames: 12 });
@@ -75,7 +75,7 @@ const CaptionScreen = ({ frame }: { frame: number }) => {
           overflow: "hidden", opacity: photoOpacity, transform: `translateY(${dy}px) scale(${scale})`,
         }}
       >
-        <Photo id={CAMERA_VIEW} blur={70} style={{ transform: "scale(1.5)" }} />
+        <Photo id={photoId} blur={70} style={{ transform: "scale(1.5)" }} />
       </div>
       <div style={{ opacity: uiOpacity }}>
         <div
@@ -100,12 +100,12 @@ const CaptionScreen = ({ frame }: { frame: number }) => {
   );
 };
 
-export const CameraScene = () => {
+export const CameraScene = ({ photoId = CAMERA_VIEW }: { photoId?: string } = {}) => {
   const frame = useCurrentFrame();
   const flash = interpolate(frame, [SHUTTER_AT, SHUTTER_AT + 2, CAPTION_AT + 4], [0, 0.6, 0], clamp);
   return (
     <Screen>
-      {frame < CAPTION_AT ? <Viewfinder frame={frame} /> : <CaptionScreen frame={frame} />}
+      {frame < CAPTION_AT ? <Viewfinder frame={frame} photoId={photoId} /> : <CaptionScreen frame={frame} photoId={photoId} />}
       <AbsoluteFill style={{ backgroundColor: "#fff", opacity: flash, zIndex: 70 }} />
     </Screen>
   );
