@@ -30,7 +30,7 @@ const Footer = ({ index, count }: { index: number; count: number }) => (
   <div style={{ position: "absolute", left: 80, right: 80, bottom: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
     <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
       <Logo size={52} />
-      <span style={{ fontFamily: fonts.sans, fontSize: 34, fontWeight: 700, color: "#fff", letterSpacing: -0.5 }}>Rollo</span>
+      <span style={{ fontFamily: fonts.sans, fontSize: 34, fontWeight: 700, color: "#fff", letterSpacing: -0.5 }}>Rollo Project</span>
     </div>
     <div style={{ display: "flex", gap: 12 }}>
       {Array.from({ length: count }, (_, i) => (

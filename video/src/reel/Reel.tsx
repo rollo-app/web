@@ -277,7 +277,7 @@ const EndCard = () => {
         <Logo size={300} />
       </div>
       <div style={{ position: "absolute", top: 720, left: 80, right: 80, display: "flex", flexDirection: "column", gap: 28 }}>
-        <Line at={AT.end} size={140} style={{ letterSpacing: -4 }}>Rollo</Line>
+        <Line at={AT.end} size={112} style={{ letterSpacing: -3 }}>Rollo Project</Line>
         <Line at={AT.end + BEAT} size={58} style={{ fontWeight: 600, letterSpacing: -0.5, color: "rgba(255,255,255,0.85)" }}>
           Como un rollo de fotos,<br />pero con tus amigos.
         </Line>
