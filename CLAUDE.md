@@ -54,6 +54,11 @@ los tokens de color en `scripts/site/tokens.mjs`). Son las URLs de privacidad (`
   `hero-poster.jpg`, `map.jpg` y `reveal.jpg` en `scripts/site/` (se commitean); `npm run stills` solo las dos capturas. Con
   "Reducir movimiento" queda el póster. El mapa usa **una copia** del estilo de la app (`video/src/map/style.ts` +
   `positron.json`, de `mobile/src/features/map/`): si cambia la paleta de la app, copiar los dos archivos de nuevo.
+- **Reel "Qué es Rollo"** (redes, no el sitio): composición `Reel` del mismo proyecto Remotion (`video/src/reel/`), 1080×1920, 22 s
+  a 120 BPM: todos los cortes, textos y sonidos caen en múltiplos de 15 cuadros (`video/src/reel/beats.ts`, con tests). La música y los
+  efectos se sintetizan en JS (`video/scripts/reel-audio.mjs`, sin samples ni licencias). `npm run reel` en `video/` (con las fotos ya
+  preparadas) deja `out/reel-que-es-rollo.mp4`; el video no se commitea (lleva fotos de los amigos de Juani). Los carruseles de
+  Instagram (1080×1350, un cuadro por slide) están en `video/src/carousel/`; `npm run carousels` deja los PNG en `out/carousels/`.
 - **Animaciones:** Motion (`animate`, `inView`) empaquetado con esbuild en `/motion.js` (servido desde el sitio, sin CDN) +
   `scripts/site/landing.js`. Con "Reducir movimiento" o sin JS la página queda en su estado final. Ojo: en Motion no animar a
   `transform: "none"` (lo vuelve una matriz de escala 0); usar `y`.

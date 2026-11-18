@@ -10,6 +10,8 @@ import { RevealScene } from "./scenes/RevealScene";
 import { ProfileScene } from "./scenes/ProfileScene";
 import { PhotosProvider } from "./data/photos-context";
 import { Playground } from "./ui/Playground";
+import { REEL_FRAMES, Reel } from "./reel/Reel";
+import { HOW_SLIDES, HowCarousel, SLIDE_H, SLIDE_W, WHY_SLIDES, WhyCarousel } from "./carousel/Carousels";
 
 const dev = (Scene: () => React.JSX.Element) => ({ photos }: { photos: PhotoRecord[] }) => (
   <PhotosProvider photos={photos}><Scene /></PhotosProvider>
@@ -37,6 +39,20 @@ export const Root = () => (
     defaultProps={{ photos: [] as PhotoRecord[] }}
     calculateMetadata={loadProps}
   />
+  <Composition
+    id="Reel"
+    component={Reel}
+    fps={30}
+    width={1080}
+    height={1920}
+    durationInFrames={REEL_FRAMES}
+    defaultProps={{ photos: [] as PhotoRecord[] }}
+    calculateMetadata={loadProps}
+  />
+  <Composition id="CarouselHow" component={HowCarousel} fps={30} width={SLIDE_W} height={SLIDE_H} durationInFrames={HOW_SLIDES}
+    defaultProps={{ photos: [] as PhotoRecord[] }} calculateMetadata={loadProps} />
+  <Composition id="CarouselWhy" component={WhyCarousel} fps={30} width={SLIDE_W} height={SLIDE_H} durationInFrames={WHY_SLIDES}
+    defaultProps={{ photos: [] as PhotoRecord[] }} calculateMetadata={loadProps} />
   <Composition
     id="Playground"
     component={Playground}
