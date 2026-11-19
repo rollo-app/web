@@ -130,7 +130,7 @@ describe("the /join page (event link)", () => {
   /** Runs the script at `pathname` with a fake fetch; resolves once the promise chain settled. */
   async function openJoin(pathname: string, response?: { status: number; ok?: boolean; json?: unknown } | "network-error") {
     const els: Record<string, El> = {};
-    for (const id of ["ok", "bad", "revealed", "name", "cover"]) els[id] = { hidden: true, src: "" };
+    for (const id of ["ok", "bad", "revealed", "name", "cover", "count"]) els[id] = { hidden: true, src: "" };
     els.pick = { hidden: false }; // visible by default inside #ok
     els.title = { hidden: false };
     els.open = { hidden: false, href: "#" };
@@ -201,6 +201,30 @@ describe("the /join page (event link)", () => {
     expect(els.cover!.src).toBe("https://api.rolloproject.com/covers/t1/c.jpg");
     expect(els.pick!.hidden).toBe(false);
     expect(els.revealed!.hidden).toBe(true);
+  });
+
+  it("shows how many people already joined", async () => {
+    const { els } = await openJoin("/join/AB3K9Z", { status: 200, json: { name: "X", revealed: false, memberCount: 12 } });
+    expect(els.count!.textContent).toBe("12 personas ya se unieron");
+    expect(els.count!.hidden).toBe(false);
+  });
+
+  it.each([null, undefined, -1, 1.5, "7", NaN])("invites to be among the first when memberCount is %p", async (memberCount) => {
+    const { els } = await openJoin("/join/AB3K9Z", { status: 200, json: { name: "X", revealed: false, memberCount } });
+    expect(els.count!.textContent).toBe("S\u00e9 de los primeros en unirte");
+    expect(els.count!.hidden).toBe(false);
+  });
+
+  it("hides the counter once the event is revealed", async () => {
+    const { els } = await openJoin("/join/AB3K9Z", { status: 200, json: { name: "X", revealed: true, memberCount: 9 } });
+    expect(els.count!.hidden).toBe(true);
+  });
+
+  it("has the counter element and styles in the built page", () => {
+    const h = joinHtml();
+    expect(h).toContain('<p id="count" class="count muted" hidden></p>');
+    expect(h).toContain(".count[hidden]{display:none}");
+    expect(h).toContain("font-variant-numeric:tabular-nums");
   });
 
   it("says the event was already revealed", async () => {

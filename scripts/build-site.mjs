@@ -313,6 +313,13 @@ const joinScript = `(function () {
       $("cover").src = API + event.coverUrl;
       $("cover").hidden = false;
     }
+    if (!event.revealed) {
+      var n = event.memberCount;
+      $("count").textContent = typeof n === "number" && Number.isInteger(n) && n >= 0
+        ? n + " personas ya se unieron"
+        : "S\u00e9 de los primeros en unirte";
+      $("count").hidden = false;
+    }
     if (event.revealed) {
       $("pick").hidden = true;
       $("revealed").hidden = false;
@@ -327,6 +334,7 @@ const joinStore = STORE_MODE === "appstore"
 const joinPage = `<img id="cover" class="cover" alt="" hidden>
 <h1 id="title">Te invitaron a un evento en Rollo</h1>
 <h1 id="name" hidden></h1>
+<p id="count" class="count muted" hidden></p>
 <div id="ok" hidden>
 <p id="pick">Abr&iacute; Rollo para elegir tu grupo.</p>
 <p id="revealed" hidden>Este evento ya se revel&oacute;.</p>
@@ -350,6 +358,8 @@ write("join/index.html", page({
   body: joinPage,
   css: `${css}.cover[hidden]{display:none}
 .cover{display:block;width:100%;max-height:320px;object-fit:cover;border-radius:16px;margin:0 0 20px}
+.count[hidden]{display:none}
+.count{font-variant-numeric:tabular-nums;margin:-8px 0 20px}
 .code{font:700 40px/1.1 ui-monospace,Menlo,monospace;letter-spacing:.12em;margin:0 0 14px}
 .store img{display:block}`,
   head: [
