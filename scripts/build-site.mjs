@@ -313,11 +313,11 @@ const joinScript = `(function () {
       $("cover").src = API + event.coverUrl;
       $("cover").hidden = false;
     }
-    if (!event.revealed) {
-      var n = event.memberCount;
-      $("count").textContent = typeof n === "number" && Number.isInteger(n) && n >= 0
-        ? n + " personas ya se unieron"
-        : "S\u00e9 de los primeros en unirte";
+    // memberCount: a number (5+) or null (fewer than 5). Missing or invalid (an older API) shows nothing.
+    var n = event.memberCount;
+    var validCount = typeof n === "number" && Number.isInteger(n) && n >= 0;
+    if (!event.revealed && (validCount || n === null)) {
+      $("count").textContent = validCount ? n + " personas ya se unieron" : "S\u00e9 de los primeros en unirte";
       $("count").hidden = false;
     }
     if (event.revealed) {

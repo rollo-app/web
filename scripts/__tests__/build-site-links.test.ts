@@ -209,10 +209,15 @@ describe("the /join page (event link)", () => {
     expect(els.count!.hidden).toBe(false);
   });
 
-  it.each([null, undefined, -1, 1.5, "7", NaN])("invites to be among the first when memberCount is %p", async (memberCount) => {
-    const { els } = await openJoin("/join/AB3K9Z", { status: 200, json: { name: "X", revealed: false, memberCount } });
+  it("invites to be among the first when memberCount is null (fewer than 5)", async () => {
+    const { els } = await openJoin("/join/AB3K9Z", { status: 200, json: { name: "X", revealed: false, memberCount: null } });
     expect(els.count!.textContent).toBe("S\u00e9 de los primeros en unirte");
     expect(els.count!.hidden).toBe(false);
+  });
+
+  it.each([undefined, -1, 1.5, "7", NaN])("shows no counter when memberCount is %p (older API or invalid)", async (memberCount) => {
+    const { els } = await openJoin("/join/AB3K9Z", { status: 200, json: { name: "X", revealed: false, memberCount } });
+    expect(els.count!.hidden).toBe(true);
   });
 
   it("hides the counter once the event is revealed", async () => {
