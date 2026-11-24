@@ -130,7 +130,7 @@ describe("the /join page (event link)", () => {
   /** Runs the script at `pathname` with a fake fetch; resolves once the promise chain settled. */
   async function openJoin(pathname: string, response?: { status: number; ok?: boolean; json?: unknown } | "network-error") {
     const els: Record<string, El> = {};
-    for (const id of ["ok", "bad", "revealed", "name", "cover", "count"]) els[id] = { hidden: true, src: "" };
+    for (const id of ["ok", "bad", "revealed", "name", "cover", "count", "description"]) els[id] = { hidden: true, src: "" };
     els.pick = { hidden: false }; // visible by default inside #ok
     els.title = { hidden: false };
     els.open = { hidden: false, href: "#" };
@@ -223,6 +223,25 @@ describe("the /join page (event link)", () => {
   it("hides the counter once the event is revealed", async () => {
     const { els } = await openJoin("/join/AB3K9Z", { status: 200, json: { name: "X", revealed: true, memberCount: 9 } });
     expect(els.count!.hidden).toBe(true);
+  });
+
+  it("shows the description as text under the name", async () => {
+    const { els } = await openJoin("/join/AB3K9Z", { status: 200, json: { name: "Boda", description: "Línea 1\n<b>x</b>" } });
+    expect(els.description!.textContent).toBe("Línea 1\n<b>x</b>");
+    expect(els.description!.hidden).toBe(false);
+  });
+
+  it.each([null, "", "   ", undefined, 5])("shows no description element when it is %p", async (d) => {
+    const { els } = await openJoin("/join/AB3K9Z", { status: 200, json: { name: "Boda", description: d } });
+    expect(els.description!.hidden).toBe(true);
+  });
+
+  it("has the description element, pre-line styles and no innerHTML", () => {
+    const h = joinHtml();
+    expect(h).toContain('<p id="description" class="description" hidden></p>');
+    expect(h).toContain(".description[hidden]{display:none}");
+    expect(h).toContain("white-space:pre-line");
+    expect(joinScript()).not.toContain("innerHTML");
   });
 
   it("has the counter element and styles in the built page", () => {

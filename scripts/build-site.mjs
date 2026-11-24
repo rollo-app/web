@@ -309,6 +309,11 @@ const joinScript = `(function () {
     $("name").textContent = event.name;
     $("name").hidden = false;
     $("title").hidden = true;
+    // description: text only (textContent keeps it inert; CSS pre-line keeps the line breaks). Null, empty or missing shows nothing.
+    if (typeof event.description === "string" && event.description.trim() !== "") {
+      $("description").textContent = event.description;
+      $("description").hidden = false;
+    }
     if (typeof event.coverUrl === "string" && /^\\/covers\\/[A-Za-z0-9._\\/-]+$/.test(event.coverUrl) && event.coverUrl.indexOf("..") === -1) {
       $("cover").src = API + event.coverUrl;
       $("cover").hidden = false;
@@ -334,6 +339,7 @@ const joinStore = STORE_MODE === "appstore"
 const joinPage = `<img id="cover" class="cover" alt="" hidden>
 <h1 id="title">Te invitaron a un evento en Rollo</h1>
 <h1 id="name" hidden></h1>
+<p id="description" class="description" hidden></p>
 <p id="count" class="count muted" hidden></p>
 <div id="ok" hidden>
 <p id="pick">Abr&iacute; Rollo para elegir tu grupo.</p>
@@ -358,6 +364,8 @@ write("join/index.html", page({
   body: joinPage,
   css: `${css}.cover[hidden]{display:none}
 .cover{display:block;width:100%;max-height:320px;object-fit:cover;border-radius:16px;margin:0 0 20px}
+.description[hidden]{display:none}
+.description{white-space:pre-line;overflow-wrap:anywhere;margin:-8px 0 20px}
 .count[hidden]{display:none}
 .count{font-variant-numeric:tabular-nums;margin:-8px 0 20px}
 .code{font:700 40px/1.1 ui-monospace,Menlo,monospace;letter-spacing:.12em;margin:0 0 14px}
