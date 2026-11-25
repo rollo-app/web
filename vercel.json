@@ -18,11 +18,11 @@
   "rewrites": [
     {
       "source": "/join/:code",
-      "destination": "/join/index.html"
+      "destination": "/api/join?code=:code"
     },
     {
       "source": "/join/:code/",
-      "destination": "/join/index.html"
+      "destination": "/api/join?code=:code"
     }
   ],
   "redirects": [
@@ -66,5 +66,13 @@
       "destination": "/terms",
       "permanent": true
     }
-  ]
+  ],
+  "functions": {
+    "api/join.ts": {
+      "includeFiles": "dist/join/index.html"
+    },
+    "api/og/join/[code].ts": {
+      "includeFiles": "node_modules/@fontsource/inter/files/inter-latin{,-ext}-{400,700}-normal.woff"
+    }
+  }
 }
