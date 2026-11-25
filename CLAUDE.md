@@ -57,7 +57,22 @@ los tokens de color en `scripts/site/tokens.mjs`). Son las URLs de privacidad (`
 - **Animaciones:** Motion (`animate`, `inView`) empaquetado con esbuild en `/motion.js` (servido desde el sitio, sin CDN) +
   `scripts/site/landing.js`. Con "Reducir movimiento" o sin JS la página queda en su estado final. Ojo: en Motion no animar a
   `transform: "none"` (lo vuelve una matriz de escala 0); usar `y`.
-- **Evento `/join/<CÓDIGO>`:** `vercel.json` reescribe `/join/:code` a `join/index.html`; el script (con hash en el CSP) lee el código del path, muestra código y "Abrir Rollo" (`rollo://join/<CÓDIGO>`) y pide `GET https://api.rolloproject.com/events/<CÓDIGO>` (nombre, portada, `revealed`; 404 = "no es de un evento"). El CSP permite solo ese `connect-src` e `img-src`. **Sin beacon de analytics** (como `/login`): el código del path es una credencial para unirse y no debe quedar en las URLs de las vistas. Sin JS solo se ve el link a la App Store (el código está en el path, no se puede leer sin script).
+- **Evento `/join/<CÓDIGO>`:** `vercel.json` reescribe `/join/:code` a la función `api/join` (ver "Vista previa del link" abajo), que sirve `join/index.html`; el script (con hash en el CSP) lee el código del path, muestra código y "Abrir Rollo" (`rollo://join/<CÓDIGO>`) y pide `GET https://api.rolloproject.com/events/<CÓDIGO>` (nombre, portada, `revealed`; 404 = "no es de un evento"). El CSP permite solo ese `connect-src` e `img-src`. **Sin beacon de analytics** (como `/login`): el código del path es una credencial para unirse y no debe quedar en las URLs de las vistas. Sin JS solo se ve el link a la App Store (el código está en el path, no se puede leer sin script).
+- **Vista previa del link `/join/<CÓDIGO>` (WhatsApp, iMessage, Instagram):** los crawlers no corren JS, así que las etiquetas
+  salen del servidor. Hay dos funciones de Vercel (Node, handler `GET(request)`), con la lógica en `api/_lib/` (el `_` evita que
+  Vercel la publique):
+  - `api/join.ts` toma `dist/join/index.html` (empaquetado con `includeFiles`), pide `GET /events/<CÓDIGO>?any=1` a la API
+    (1,5 s máximo) y cambia el bloque `<!--og-->…<!--/og-->`, `<title>` y `meta description` por los del rollo: `og:url` con el
+    código y `og:image` → `/api/og/join/<CÓDIGO>?v=<hash>` (el hash cambia si cambia nombre, portada, fechas o gente, para que
+    las apps pidan la imagen de nuevo). Si el código no tiene formato, la API dice 404/429 o tarda, sirve la página tal cual
+    (`og.png`). Caché del CDN 5 min.
+  - `api/og/join/[code].ts` dibuja la tarjeta 1200×630 con **satori + resvg** (portada con velo, "Te invitaron a", nombre,
+    fecha y gente; sin portada, degradé cobalto; Inter de `@fontsource/inter`) y la manda en **JPEG**: un PNG sobre una foto
+    pesa ~900 KB y WhatsApp no muestra imágenes de más de ~300 KB. Sin vista previa: 302 a `/og.png`. No se usa `@vercel/og`
+    (la 1.0.3 no arranca en Node ESM).
+  - **Ojo:** la API limita por IP y bloquea 60 s una IP con más de 20 códigos inexistentes por minuto; las funciones salen por
+    pocas IPs, así que un bot probando códigos puede dejar los links con la imagen genérica un rato. Los rollos comunes
+    necesitan la API con `any=1` en producción.
 - **Analytics:** Cloudflare Web Analytics (sin cookies, solo vistas). El token (público) está en `CF_ANALYTICS_TOKEN` de
   `build-site.mjs`; `SITE_CF_ANALYTICS_TOKEN=""` arma sin beacon (lo usan los tests). El beacon va en todas las páginas menos
   `/login`; en `/friends` el CSP suma `static.cloudflareinsights.com` solo cuando hay token. **Pendiente:** el sitio de Web

@@ -94,3 +94,8 @@ la guardan en su caché. El código no se dibuja en la imagen.
   fecha, validación de código y portada, y que el build deje los marcadores. La función de la imagen se prueba renderizando
   un PNG con datos de ejemplo (dimensiones 1200×630).
 - A mano: `vercel dev`, o `vercel build` + servir, pidiendo el HTML de un código real y la URL de la imagen.
+
+## Cambios durante la implementación
+
+- `@vercel/og` 1.0.3 no arranca en Node ESM: se usa satori + resvg directo.
+- La imagen sale en JPEG (calidad 82), no PNG: con una foto de portada el PNG pesaba ~866 KB y el JPEG ~98 KB.
