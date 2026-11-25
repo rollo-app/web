@@ -297,7 +297,8 @@ const joinScript = `(function () {
   $("code").textContent = code;
   $("open").href = "rollo://join/" + code;
   $("ok").hidden = false;
-  fetch(API + "/events/" + code).then(function (res) {
+  // any=1: also answer for a regular rollo (without it only events do, so builds that read any 200 as an event keep working).
+  fetch(API + "/events/" + code + "?any=1").then(function (res) {
     if (res.status === 404) {
       $("ok").hidden = true;
       $("bad").hidden = false;
@@ -309,6 +310,13 @@ const joinScript = `(function () {
     $("name").textContent = event.name;
     $("name").hidden = false;
     $("title").hidden = true;
+    // type "trip" is a regular rollo (no groups); "event" or a missing type (older API) keeps the event copy.
+    var isTrip = event.type === "trip";
+    if (isTrip) {
+      $("title").textContent = "Te invitaron a un rollo en Rollo";
+      $("pick").hidden = true;
+      $("revealed").textContent = "Este rollo ya se revel\u00f3.";
+    }
     // description: text only (textContent keeps it inert; CSS pre-line keeps the line breaks). Null, empty or missing shows nothing.
     if (typeof event.description === "string" && event.description.trim() !== "") {
       $("description").textContent = event.description;
@@ -332,12 +340,12 @@ const joinScript = `(function () {
   }).catch(function () {});
 })();`;
 
-const joinInvalid = `<p>Este c&oacute;digo no es de un evento.</p>`;
+const joinInvalid = `<p>Este c&oacute;digo no es v&aacute;lido.</p>`;
 const joinStore = STORE_MODE === "appstore"
   ? `<a class="store" href="${storeHref}"><img src="/app-store-badge.svg" alt="Desc&aacute;rgalo en el App Store" width="156" height="52"></a>`
   : `<a href="${storeHref}">Bajar Rollo</a>`;
 const joinPage = `<img id="cover" class="cover" alt="" hidden>
-<h1 id="title">Te invitaron a un evento en Rollo</h1>
+<h1 id="title">Te invitaron a Rollo</h1>
 <h1 id="name" hidden></h1>
 <p id="description" class="description" hidden></p>
 <p id="count" class="count muted" hidden></p>
@@ -359,8 +367,8 @@ ${joinInvalid}
 // No analytics beacon here (like /login): the event code in the path is a join credential and must not reach page-view URLs.
 write("join/index.html", page({
   analytics: false,
-  title: "Sumate al evento · Rollo Project",
-  description: "Te invitaron a un evento en Rollo.",
+  title: "Sumate en Rollo · Rollo Project",
+  description: "Te invitaron a Rollo.",
   body: joinPage,
   css: `${css}.cover[hidden]{display:none}
 .cover{display:block;width:100%;max-height:320px;object-fit:cover;border-radius:16px;margin:0 0 20px}
@@ -377,8 +385,8 @@ write("join/index.html", page({
     `<meta name="robots" content="noindex">`,
     `<meta property="og:type" content="website">`,
     `<meta property="og:url" content="${SITE_URL}/join">`,
-    `<meta property="og:title" content="Te invitaron a un evento en Rollo">`,
-    `<meta property="og:description" content="Sumate al evento y elegí tu grupo.">`,
+    `<meta property="og:title" content="Te invitaron a Rollo">`,
+    `<meta property="og:description" content="Sumate en Rollo.">`,
     `<meta property="og:image" content="${SITE_URL}/og.png">`,
     `<meta property="og:image:width" content="1200">`,
     `<meta property="og:image:height" content="630">`,
@@ -396,7 +404,7 @@ write(".well-known/apple-app-site-association", JSON.stringify({
         { "/": "/login/" },
         { "/": "/friends", comment: "Friend link" },
         { "/": "/friends/" },
-        { "/": "/join/*", comment: "Event link" },
+        { "/": "/join/*", comment: "Rollo or event link" },
       ],
     }],
   },
