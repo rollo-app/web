@@ -66,7 +66,7 @@ los tokens de color en `scripts/site/tokens.mjs`). Son las URLs de privacidad (`
     código y `og:image` → `/api/og/join/<CÓDIGO>?v=<hash>` (el hash cambia si cambia nombre, portada, fechas o gente, para que
     las apps pidan la imagen de nuevo). Si el código no tiene formato, la API dice 404/429 o tarda, sirve la página tal cual
     (`og.png`). Caché del CDN 5 min.
-  - `api/og/join/[code].ts` dibuja la tarjeta 1200×630 con **satori + resvg** (portada con velo, "Te invitaron a", nombre,
+  - `api/og/join/[code].ts` dibuja la tarjeta 1200×630 con **satori + resvg** (portada con velo y encuadrada con `coverFocusY`, "Te invitaron a", nombre,
     fecha y gente; sin portada, degradé cobalto; Inter latin + latin-ext de `@fontsource/inter`, sin emoji porque Inter no los tiene) y la manda en **JPEG**: un PNG sobre una foto
     pesa ~900 KB y WhatsApp no muestra imágenes de más de ~300 KB. Sin vista previa: 302 a `/og.png`. No se usa `@vercel/og`
     (la 1.0.3 no arranca en Node ESM).

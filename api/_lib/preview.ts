@@ -8,6 +8,8 @@ export type Preview = {
   type: "trip" | "event";
   name: string;
   coverUrl: string | null;
+  /** Which vertical part of the cover to show (0 top .. 1 bottom); null = middle. */
+  coverFocusY: number | null;
   description: string | null;
   /** null when the API doesn't send dates (production before the `any=1` release). */
   startsAt: number | null;
@@ -105,6 +107,7 @@ export async function fetchPreview(code: string, opts: FetchOptions = {}): Promi
     type: body.type === "trip" ? "trip" : "event",
     name: body.name.trim(),
     coverUrl: safeCoverPath(body.coverUrl),
+    coverFocusY: typeof body.coverFocusY === "number" && body.coverFocusY >= 0 && body.coverFocusY <= 1 ? body.coverFocusY : null,
     description: typeof body.description === "string" ? body.description : null,
     startsAt: startsAt !== null && endsAt !== null ? startsAt : null,
     endsAt: startsAt !== null && endsAt !== null ? endsAt : null,
@@ -154,6 +157,6 @@ export function caption(p: Preview): string {
 
 /** Changes whenever the image would change, so apps that cache the image by URL fetch it again. */
 export function previewVersion(p: Preview): string {
-  const key = [p.name, p.coverUrl ?? "", p.startsAt, p.endsAt, p.timezone, p.memberCount ?? "", p.revealed].join("|");
+  const key = [p.name, p.coverUrl ?? "", p.coverFocusY ?? "", p.startsAt, p.endsAt, p.timezone, p.memberCount ?? "", p.revealed].join("|");
   return createHash("sha256").update(key).digest("hex").slice(0, 10);
 }

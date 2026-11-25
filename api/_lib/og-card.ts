@@ -78,7 +78,7 @@ export function cardTree(p: Preview, cover: string | null): Node {
     "div",
     { display: "flex", width: WIDTH, height: HEIGHT, position: "relative", color: "#fff", fontFamily: `${FONT_FAMILIES.latin}, "${FONT_FAMILIES["latin-ext"]}"`, backgroundColor: "#1c1c1e", backgroundImage: cover ? undefined : EMPTY_BACKGROUND },
     [
-      cover ? el("img", { ...fill, objectFit: "cover" }, undefined, { src: cover, width: WIDTH, height: HEIGHT }) : null,
+      cover ? el("img", { ...fill, objectFit: "cover", objectPosition: `50% ${(p.coverFocusY ?? 0.5) * 100}%` }, undefined, { src: cover, width: WIDTH, height: HEIGHT }) : null,
       cover
         ? el("div", { ...fill, display: "flex", backgroundImage: "linear-gradient(90deg, rgba(0,0,0,0.72), rgba(0,0,0,0.35) 55%, rgba(0,0,0,0) 80%)" })
         : null,

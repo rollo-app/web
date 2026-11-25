@@ -8,6 +8,7 @@ export const samplePreview = (over: Partial<Preview> = {}): Preview => ({
   type: "event",
   name: "Casamiento de Ana & Fede",
   coverUrl: "/covers/abc/cover.jpg",
+  coverFocusY: null,
   description: "La fiesta es en el salón.",
   startsAt: day("2026-12-12"),
   endsAt: day("2026-12-12"),

@@ -7,9 +7,9 @@ import { cardSvg, cardText, fetchCover, handleOg, IMAGE_CACHE_LONG, IMAGE_CACHE_
 import { PreviewUnavailable } from "../../api/_lib/preview";
 import { samplePreview } from "./helpers/preview";
 
-/** A small PNG standing in for a cover, as the API would send it. */
+/** A small portrait PNG standing in for a cover (two colors, so the framing shows), as the API would send it. */
 const coverPng = () =>
-  new Resvg(`<svg xmlns="http://www.w3.org/2000/svg" width="90" height="120"><rect width="90" height="120" fill="#c4795a"/></svg>`)
+  new Resvg(`<svg xmlns="http://www.w3.org/2000/svg" width="90" height="120"><rect width="90" height="60" fill="#c4795a"/><rect y="60" width="90" height="60" fill="#2b2a3a"/></svg>`)
     .render()
     .asPng();
 const coverDataUri = () => `data:image/png;base64,${Buffer.from(coverPng()).toString("base64")}`;
@@ -49,6 +49,11 @@ describe("cardText", () => {
 });
 
 describe("renderCard edge cases", () => {
+  it("frames the cover by coverFocusY (top vs bottom differ; null is the middle)", async () => {
+    const svg = (coverFocusY: number | null) => cardSvg(samplePreview({ coverFocusY }), coverDataUri());
+    expect(await svg(0)).not.toBe(await svg(1));
+    expect(await svg(null)).toBe(await svg(0.5));
+  });
   it("draws Latin letters beyond Spanish (Ł) instead of the missing-glyph box", async () => {
     // A character no bundled font has (中) draws satori's "no glyph" box; Ł must not draw the same thing.
     const svg = (name: string) => cardSvg(samplePreview({ name, startsAt: null, endsAt: null, memberCount: null }), null);
