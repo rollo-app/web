@@ -81,7 +81,7 @@ la guardan en su caché. El código no se dibuja en la imagen.
   - **Mitigación en este PR:** validar el formato antes de llamar a la API, más la caché del CDN para el HTML y la imagen.
   - **Si pasa en la práctica:** un header secreto que el backend exceptúe (otro PR, en el backend).
 - **Despliegue:** sin desplegar `develop` del backend a producción, los rollos comunes devuelven 404 y caen a la imagen
-  genérica. Los eventos ya andan.
+  genérica. Los eventos salen con nombre y portada pero sin fecha ni gente (`main` del backend manda solo `{ name, coverUrl, revealed, groups }`).
 
 ## Qué queda para quien lo construya
 
