@@ -3,7 +3,8 @@ import { Resvg } from "@resvg/resvg-js";
 import { decode } from "jpeg-js";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { fetchCover, handleOg, IMAGE_CACHE_LONG, IMAGE_CACHE_SHORT, renderCard } from "../../api/_lib/og-card";
+import { cardSvg, cardText, fetchCover, handleOg, IMAGE_CACHE_LONG, IMAGE_CACHE_SHORT, renderCard } from "../../api/_lib/og-card";
+import { PreviewUnavailable } from "../../api/_lib/preview";
 import { samplePreview } from "./helpers/preview";
 
 /** A small PNG standing in for a cover, as the API would send it. */
@@ -38,6 +39,30 @@ describe("renderCard", () => {
   });
 });
 
+describe("cardText", () => {
+  it("drops emoji the card's font can't draw, so no empty boxes show", () => {
+    expect(cardText("Casamiento 💍 Ana & Leo 👨‍👩‍👧 🇺🇾 ❤️")).toBe("Casamiento Ana & Leo");
+  });
+  it("keeps accents and Latin letters beyond Spanish", () => {
+    expect(cardText("Cumpleaños de Łukasz en Ñuñoa")).toBe("Cumpleaños de Łukasz en Ñuñoa");
+  });
+});
+
+describe("renderCard edge cases", () => {
+  it("draws Latin letters beyond Spanish (Ł) instead of the missing-glyph box", async () => {
+    // A character no bundled font has (中) draws satori's "no glyph" box; Ł must not draw the same thing.
+    const svg = (name: string) => cardSvg(samplePreview({ name, startsAt: null, endsAt: null, memberCount: null }), null);
+    expect(await svg("ŁŁŁ")).not.toBe(await svg("中中中"));
+  });
+  it("draws without a caption (the production API's shorter answer)", async () => {
+    const png = await renderCard(samplePreview({ startsAt: null, endsAt: null, memberCount: null }), null);
+    expect(jpegSize(png)).toEqual({ width: 1200, height: 630 });
+  });
+  it("draws a very long name without spaces", async () => {
+    expect(jpegSize(await renderCard(samplePreview({ name: "A".repeat(120) }), null))).toEqual({ width: 1200, height: 630 });
+  });
+});
+
 describe("fetchCover", () => {
   it("returns the cover as a data URI", async () => {
     const fetch = vi.fn(async () => new Response(coverPng(), { headers: { "content-type": "image/png" } }));
@@ -49,8 +74,11 @@ describe("fetchCover", () => {
     const fetch = vi.fn(async () => new Response("<html>", { headers: { "content-type": "text/html" } }));
     expect(await fetchCover("/covers/t1/c.png", { fetch })).toBeNull();
   });
+  it.each([404, 500])("returns null on HTTP %i", async (status) => {
+    expect(await fetchCover("/covers/t1/c.png", { fetch: vi.fn(async () => new Response("", { status })) })).toBeNull();
+  });
   it("returns null when the request fails", async () => {
-    expect(await fetchCover("/covers/t1/c.png", { fetch: vi.fn(async () => new Response("", { status: 404 })) })).toBeNull();
+    expect(await fetchCover("/covers/t1/c.png", { fetch: vi.fn(async () => Promise.reject(new Error("down"))) })).toBeNull();
   });
 });
 
@@ -84,6 +112,12 @@ describe("handleOg", () => {
     const res = await handleOg(request("ABC123"), { fetchPreview: async () => null });
     expect(res.status).toBe(302);
     expect(res.headers.get("location")).toBe("https://rolloproject.com/og.png");
+    expect(res.headers.get("cache-control")).toBe(IMAGE_CACHE_SHORT);
+  });
+
+  it("redirects to the site image when the API is unavailable", async () => {
+    const res = await handleOg(request("ABC123"), { fetchPreview: async () => { throw new PreviewUnavailable("timeout"); } });
+    expect(res.status).toBe(302);
     expect(res.headers.get("cache-control")).toBe(IMAGE_CACHE_SHORT);
   });
 

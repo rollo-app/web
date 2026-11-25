@@ -1,8 +1,10 @@
 // The join page (/join/<CODE>) with share tags for that rollo, so link previews in chat apps show its card.
-import { fetchPreview as defaultFetchPreview, normalizeCode, previewVersion, type Preview } from "./preview";
+import { fetchPreview as defaultFetchPreview, normalizeCode, PREVIEW_TIMEOUT_MS, PreviewUnavailable, previewVersion, type Preview } from "./preview";
 
 export const SITE_URL = "https://rolloproject.com";
 export const HTML_CACHE_CONTROL = "public, max-age=0, s-maxage=300, stale-while-revalidate=86400";
+/** When the API was unavailable (timeout, 429, 5xx): the generic page, kept only briefly so the next crawl gets the rollo. */
+export const HTML_CACHE_SHORT = "public, max-age=0, s-maxage=60";
 const DESCRIPTION_MAX = 200;
 
 const OPEN = "<!--og-->";
@@ -48,9 +50,34 @@ type JoinDeps = { template: string; fetchPreview?: (code: string) => Promise<Pre
 /** GET /api/join?code=<CODE> (vercel.json rewrites /join/:code here). Always 200: the page itself handles a bad code. */
 export async function handleJoin(request: Request, { template, fetchPreview = defaultFetchPreview }: JoinDeps): Promise<Response> {
   const code = normalizeCode(new URL(request.url).searchParams.get("code"));
-  const preview = code ? await fetchPreview(code) : null;
+  let preview: Preview | null = null;
+  let unavailable = false;
+  if (code) {
+    try {
+      preview = await fetchPreview(code);
+    } catch (error) {
+      if (!(error instanceof PreviewUnavailable)) throw error;
+      unavailable = true;
+    }
+  }
   return new Response(code ? renderJoinHtml(template, code, preview) : template, {
     status: 200,
-    headers: { "content-type": "text/html; charset=utf-8", "cache-control": HTML_CACHE_CONTROL },
+    headers: { "content-type": "text/html; charset=utf-8", "cache-control": unavailable ? HTML_CACHE_SHORT : HTML_CACHE_CONTROL },
   });
+}
+
+type TemplateDeps = { readFile: () => string; fetch?: typeof fetch };
+
+/**
+ * The built join page: the copy bundled with the function (`includeFiles`) or, if that is missing, the same static file
+ * fetched from the site, so a packaging slip can't turn every /join link into a 500.
+ */
+export async function loadJoinTemplate(request: Request, { readFile, fetch: doFetch = fetch }: TemplateDeps): Promise<string> {
+  try {
+    return readFile();
+  } catch {
+    const res = await doFetch(new URL("/join/index.html", request.url).toString(), { signal: AbortSignal.timeout(PREVIEW_TIMEOUT_MS) });
+    if (!res.ok) throw new Error(`join page: HTTP ${res.status}`);
+    return res.text();
+  }
 }

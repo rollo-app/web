@@ -67,12 +67,16 @@ los tokens de color en `scripts/site/tokens.mjs`). Son las URLs de privacidad (`
     las apps pidan la imagen de nuevo). Si el código no tiene formato, la API dice 404/429 o tarda, sirve la página tal cual
     (`og.png`). Caché del CDN 5 min.
   - `api/og/join/[code].ts` dibuja la tarjeta 1200×630 con **satori + resvg** (portada con velo, "Te invitaron a", nombre,
-    fecha y gente; sin portada, degradé cobalto; Inter de `@fontsource/inter`) y la manda en **JPEG**: un PNG sobre una foto
+    fecha y gente; sin portada, degradé cobalto; Inter latin + latin-ext de `@fontsource/inter`, sin emoji porque Inter no los tiene) y la manda en **JPEG**: un PNG sobre una foto
     pesa ~900 KB y WhatsApp no muestra imágenes de más de ~300 KB. Sin vista previa: 302 a `/og.png`. No se usa `@vercel/og`
     (la 1.0.3 no arranca en Node ESM).
   - **Ojo:** la API limita por IP y bloquea 60 s una IP con más de 20 códigos inexistentes por minuto; las funciones salen por
-    pocas IPs, así que un bot probando códigos puede dejar los links con la imagen genérica un rato. Los rollos comunes
-    necesitan la API con `any=1` en producción.
+    pocas IPs, así que un bot probando códigos puede dejar los links con la imagen genérica un rato. Si la API falla
+    (timeout, 429, 5xx), el HTML genérico queda en caché solo 1 min.
+  - **Qué manda la API en producción:** hasta que se publique `develop` del backend, `main` contesta solo eventos y solo
+    `{ name, coverUrl, revealed, groups }`: la tarjeta sale con nombre y portada, sin fecha ni gente, y los rollos comunes
+    caen a la imagen genérica. Con la API nueva (`any=1`, fechas, `memberCount`) se completan solas. Un evento muestra solo el
+    día en que empieza (como la tarjeta de Stories); un rollo común, el rango.
 - **Analytics:** Cloudflare Web Analytics (sin cookies, solo vistas). El token (público) está en `CF_ANALYTICS_TOKEN` de
   `build-site.mjs`; `SITE_CF_ANALYTICS_TOKEN=""` arma sin beacon (lo usan los tests). El beacon va en todas las páginas menos
   `/login`; en `/friends` el CSP suma `static.cloudflareinsights.com` solo cuando hay token. **Pendiente:** el sitio de Web

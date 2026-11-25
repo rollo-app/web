@@ -1,4 +1,4 @@
-import { caption, fetchPreview, formatDates, normalizeCode, previewVersion, safeCoverPath } from "../../api/_lib/preview";
+import { caption, fetchPreview, fetchWithTimeout, formatDates, normalizeCode, PreviewUnavailable, previewVersion, safeCoverPath } from "../../api/_lib/preview";
 import { day, samplePreview, TZ } from "./helpers/preview";
 
 describe("normalizeCode", () => {
@@ -31,22 +31,42 @@ describe("fetchPreview", () => {
     expect(fetch).toHaveBeenCalledWith("https://api.rolloproject.com/events/ABC123?any=1", expect.anything());
     expect(preview).toMatchObject({ type: "trip", name: "Viaje", memberCount: null });
   });
-  it.each([404, 429, 500])("returns null on HTTP %i", async (status) => {
-    expect(await fetchPreview("ABC123", { fetch: respond(status, body) })).toBeNull();
+  it("returns null when the API does not know the code", async () => {
+    expect(await fetchPreview("ABC123", { fetch: respond(404, {}) })).toBeNull();
   });
-  it("returns null when the body has no name", async () => {
-    expect(await fetchPreview("ABC123", { fetch: respond(200, {}) })).toBeNull();
+  it.each([429, 500, 503])("throws PreviewUnavailable on HTTP %i, so callers don't cache it", async (status) => {
+    await expect(fetchPreview("ABC123", { fetch: respond(status, body) })).rejects.toBeInstanceOf(PreviewUnavailable);
   });
-  it("returns null when the request fails", async () => {
-    expect(await fetchPreview("ABC123", { fetch: vi.fn(async () => Promise.reject(new Error("down"))) })).toBeNull();
+  it.each([{}, { ...body, name: "" }, { ...body, name: "   " }])("returns null for a body without a usable name (%o)", async (json) => {
+    expect(await fetchPreview("ABC123", { fetch: respond(200, json) })).toBeNull();
+  });
+  it("throws PreviewUnavailable when the request fails", async () => {
+    await expect(fetchPreview("ABC123", { fetch: vi.fn(async () => Promise.reject(new Error("down"))) })).rejects.toBeInstanceOf(PreviewUnavailable);
   });
   it("gives up after the timeout", async () => {
     const hang = vi.fn((_url: string, init?: RequestInit) =>
       new Promise<Response>((_, reject) => init?.signal?.addEventListener("abort", () => reject(new Error("aborted")))),
     );
     const started = Date.now();
-    expect(await fetchPreview("ABC123", { fetch: hang as unknown as typeof fetch, timeoutMs: 20 })).toBeNull();
+    await expect(fetchPreview("ABC123", { fetch: hang as unknown as typeof fetch, timeoutMs: 20 })).rejects.toBeInstanceOf(PreviewUnavailable);
     expect(Date.now() - started).toBeLessThan(200);
+  });
+  it("gives up when the headers arrive but the body never ends", async () => {
+    const stalled = vi.fn(async () => new Response(new ReadableStream({ start: (c) => c.enqueue(new TextEncoder().encode('{"name":')) }), { status: 200 }));
+    const started = Date.now();
+    await expect(fetchPreview("ABC123", { fetch: stalled, timeoutMs: 30 })).rejects.toBeInstanceOf(PreviewUnavailable);
+    expect(Date.now() - started).toBeLessThan(300);
+  });
+  it("accepts the production API's shorter answer (name, cover, revealed, groups)", async () => {
+    const preview = await fetchPreview("ABC123", { fetch: respond(200, { name: "Casamiento", coverUrl: "/covers/t/c.jpg", revealed: false, groups: [] }) });
+    expect(preview).toMatchObject({ type: "event", name: "Casamiento", coverUrl: "/covers/t/c.jpg", startsAt: null, endsAt: null, memberCount: null });
+  });
+});
+
+describe("fetchWithTimeout", () => {
+  it("refuses a body over the byte cap", async () => {
+    const big = vi.fn(async () => new Response(new Uint8Array(2048), { status: 200 }));
+    await expect(fetchWithTimeout("https://x", (res) => res.arrayBuffer(), { fetch: big, maxBytes: 1024 })).rejects.toBeInstanceOf(PreviewUnavailable);
   });
 });
 
@@ -84,6 +104,16 @@ describe("caption", () => {
   });
   it("leaves the count out once revealed", () => {
     expect(caption(samplePreview({ revealed: true }))).toBe("12 de diciembre");
+  });
+  it("shows only the day an overnight event starts, like the app's Stories card", () => {
+    const night = samplePreview({ startsAt: Date.parse("2026-12-13T00:00:00Z"), endsAt: Date.parse("2026-12-13T08:00:00Z"), memberCount: null });
+    expect(caption(night)).toBe("12 de diciembre");
+  });
+  it("shows the whole range for a regular rollo", () => {
+    expect(caption(samplePreview({ type: "trip", startsAt: day("2027-01-03"), endsAt: day("2027-01-08"), memberCount: null }))).toBe("3 al 8 de enero");
+  });
+  it("is empty without dates nor count (the production API's shorter answer)", () => {
+    expect(caption(samplePreview({ startsAt: null, endsAt: null, memberCount: null }))).toBe("");
   });
 });
 

@@ -72,7 +72,7 @@
       "includeFiles": "dist/join/index.html"
     },
     "api/og/join/[code].ts": {
-      "includeFiles": "node_modules/@fontsource/inter/files/inter-latin-{400,700}-normal.woff"
+      "includeFiles": "node_modules/@fontsource/inter/files/inter-latin{,-ext}-{400,700}-normal.woff"
     }
   }
 }

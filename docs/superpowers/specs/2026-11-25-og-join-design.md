@@ -99,3 +99,7 @@ la guardan en su caché. El código no se dibuja en la imagen.
 
 - `@vercel/og` 1.0.3 no arranca en Node ESM: se usa satori + resvg directo.
 - La imagen sale en JPEG (calidad 82), no PNG: con una foto de portada el PNG pesaba ~866 KB y el JPEG ~98 KB.
+- Revisión final: la API de producción no manda fechas, así que las fechas son opcionales y la tarjeta sale sin esa línea;
+  un evento muestra solo el día de inicio; se sacan los emoji (Inter no los tiene) y se suma Inter latin-ext; el timeout
+  cubre también la lectura del cuerpo (tope de 5 MB); un fallo de la API (≠ 404) deja el HTML genérico solo 1 min en caché;
+  si falta el HTML empaquetado se pide el estático al mismo sitio.

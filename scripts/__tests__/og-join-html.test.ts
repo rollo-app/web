@@ -3,7 +3,8 @@ import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { handleJoin, HTML_CACHE_CONTROL, renderJoinHtml } from "../../api/_lib/join-html";
+import { handleJoin, HTML_CACHE_CONTROL, HTML_CACHE_SHORT, loadJoinTemplate, renderJoinHtml } from "../../api/_lib/join-html";
+import { PreviewUnavailable } from "../../api/_lib/preview";
 import { previewVersion } from "../../api/_lib/preview";
 import { samplePreview } from "./helpers/preview";
 
@@ -95,7 +96,37 @@ describe("handleJoin", () => {
   it("serves the generic page when the API has nothing", async () => {
     const res = await handleJoin(new Request("https://rolloproject.com/api/join?code=ABC123"), { template, fetchPreview: async () => null });
     expect(await res.text()).toBe(template);
+    expect(res.headers.get("cache-control")).toBe(HTML_CACHE_CONTROL);
   });
+
+  it("serves the generic page with a short cache when the API is unavailable, so a blip isn't kept for minutes", async () => {
+    const fetchPreview = async () => {
+      throw new PreviewUnavailable("HTTP 429");
+    };
+    const res = await handleJoin(new Request("https://rolloproject.com/api/join?code=ABC123"), { template, fetchPreview });
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe(template);
+    expect(res.headers.get("cache-control")).toBe(HTML_CACHE_SHORT);
+  });
+});
+
+describe("loadJoinTemplate", () => {
+  const request = new Request("https://rolloproject.com/api/join?code=ABC123");
+  it("reads the bundled page", async () => {
+    expect(await loadJoinTemplate(request, { readFile: () => "<html>bundled", fetch: vi.fn() })).toBe("<html>bundled");
+  });
+  it("falls back to the static page on the same site when the bundled one is missing", async () => {
+    const fetch = vi.fn(async () => new Response("<html>static", { status: 200 }));
+    const readFile = () => {
+      throw new Error("ENOENT");
+    };
+    expect(await loadJoinTemplate(request, { readFile, fetch })).toBe("<html>static");
+    expect(fetch).toHaveBeenCalledWith("https://rolloproject.com/join/index.html", expect.anything());
+  });
+});
+
+it("HTML_CACHE_SHORT lets the CDN keep a failed lookup only a minute", () => {
+  expect(HTML_CACHE_SHORT).toBe("public, max-age=0, s-maxage=60");
 });
 
 it("HTML_CACHE_CONTROL keeps browsers fresh and lets the CDN cache a few minutes", () => {
