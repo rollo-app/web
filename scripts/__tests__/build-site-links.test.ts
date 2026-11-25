@@ -183,9 +183,11 @@ describe("the /join page (event link)", () => {
     expect(joinHtml()).toContain(".cover[hidden]{display:none}");
   });
 
-  it("rewrites /join/:code to the page in vercel.json", () => {
+  it("rewrites /join/:code to the function that adds the rollo's share tags, which bundles the page", () => {
     const vercel = JSON.parse(readFileSync(join(__dirname, "..", "..", "vercel.json"), "utf8"));
-    expect(vercel.rewrites).toContainEqual({ source: "/join/:code", destination: "/join/index.html" });
+    expect(vercel.rewrites).toContainEqual({ source: "/join/:code", destination: "/api/join?code=:code" });
+    expect(vercel.rewrites).toContainEqual({ source: "/join/:code/", destination: "/api/join?code=:code" });
+    expect(vercel.functions["api/join.ts"].includeFiles).toBe("dist/join/index.html");
   });
 
   it("shows the code and the deep link straight away, then the event with its cover", async () => {

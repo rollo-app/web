@@ -383,6 +383,8 @@ write("join/index.html", page({
     `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-${createHash("sha256").update(joinScript).digest("base64")}'; style-src 'unsafe-inline'; img-src 'self' ${API_URL}; connect-src ${API_URL}; form-action 'none'; base-uri 'none'">`,
     `<meta name="referrer" content="no-referrer">`,
     `<meta name="robots" content="noindex">`,
+    // api/join.ts swaps what is between these markers (and <title>, meta description) for the rollo's own tags.
+    `<!--og-->`,
     `<meta property="og:type" content="website">`,
     `<meta property="og:url" content="${SITE_URL}/join">`,
     `<meta property="og:title" content="Te invitaron a Rollo">`,
@@ -391,6 +393,7 @@ write("join/index.html", page({
     `<meta property="og:image:width" content="1200">`,
     `<meta property="og:image:height" content="630">`,
     `<meta name="twitter:card" content="summary_large_image">`,
+    `<!--/og-->`,
     "",
   ].join("\n"),
 }));
