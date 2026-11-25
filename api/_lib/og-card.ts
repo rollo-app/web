@@ -24,7 +24,8 @@ export const IMAGE_CACHE_LONG = "public, max-age=31536000, immutable";
 const JPEG_QUALITY = 82;
 export const IMAGE_CACHE_SHORT = "public, max-age=60, s-maxage=60";
 
-const COBALT = "#3155F5";
+/** The site's dark-mode cobalt (scripts/site/tokens.mjs): the brand mark over a darkened cover. */
+const COBALT_ON_DARK = "#5C7CFF";
 /** Without a cover: the Stories card's cobalt gradient. */
 const EMPTY_BACKGROUND = "linear-gradient(135deg, #3155F5, #0b1a5c)";
 const MARGIN = 72;
@@ -83,9 +84,11 @@ export function cardTree(p: Preview, cover: string | null): Node {
         ? el("div", { ...fill, display: "flex", backgroundImage: "linear-gradient(90deg, rgba(0,0,0,0.72), rgba(0,0,0,0.35) 55%, rgba(0,0,0,0) 80%)" })
         : null,
       cover ? el("div", { ...fill, display: "flex", backgroundImage: "linear-gradient(0deg, rgba(0,0,0,0.4), rgba(0,0,0,0) 60%)" }) : null,
+      // A soft shade behind the brand, so it reads over light and busy covers alike.
+      cover ? el("div", { ...fill, display: "flex", backgroundImage: "radial-gradient(ellipse 520px 260px at 120px 80px, rgba(0,0,0,0.55), rgba(0,0,0,0) 100%)" }) : null,
       el("div", { position: "absolute", left: MARGIN, top: 60, display: "flex", alignItems: "center" }, [
-        el("img", { width: 48, height: 48, marginRight: 14 }, undefined, { src: logo(cover ? COBALT : "#fff"), width: 48, height: 48 }),
-        el("div", { fontSize: 30, fontWeight: 700 }, "Rollo Project"),
+        el("img", { width: 48, height: 48, marginRight: 14 }, undefined, { src: logo(cover ? COBALT_ON_DARK : "#fff"), width: 48, height: 48 }),
+        el("div", { fontSize: 30, fontWeight: 700, textShadow: "0 1px 8px rgba(0,0,0,0.45)" }, "Rollo Project"),
       ]),
       el("div", { position: "absolute", left: MARGIN, bottom: 64, width: TEXT_WIDTH, display: "flex", flexDirection: "column" }, [
         el("div", secondary, "Te invitaron a"),
