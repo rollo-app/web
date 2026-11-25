@@ -15,5 +15,9 @@
     "motion": "14.0.0",
     "qrcode": "^1.5.4",
     "vitest": "^4.1.12"
+  },
+  "dependencies": {
+    "@fontsource/inter": "^5.3.0",
+    "satori": "^0.63.2"
   }
 }
