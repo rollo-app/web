@@ -30,8 +30,8 @@ export class PreviewUnavailable extends Error {}
 /** Biggest body read from the API: a cover is a 1080×1440 JPEG, far below this. */
 const MAX_BYTES = 5_000_000;
 
-async function readCapped(res: Response, maxBytes: number): Promise<Uint8Array> {
-  if (!res.body) return new Uint8Array();
+async function readCapped(res: Response, maxBytes: number): Promise<Uint8Array<ArrayBuffer>> {
+  if (!res.body) return new Uint8Array(0);
   const reader = res.body.getReader();
   const chunks: Uint8Array[] = [];
   let size = 0;
