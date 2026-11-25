@@ -78,7 +78,7 @@ export function cardTree(p: Preview, cover: string | null): Node {
 }
 
 /** The card as a JPEG. */
-export async function renderCard(p: Preview, cover: string | null): Promise<Uint8Array> {
+export async function renderCard(p: Preview, cover: string | null): Promise<Uint8Array<ArrayBuffer>> {
   const svg = await satori(cardTree(p, cover) as Parameters<typeof satori>[0], { width: WIDTH, height: HEIGHT, fonts: loadFonts() });
   const image = new Resvg(svg, { fitTo: { mode: "width", value: WIDTH } }).render();
   return new Uint8Array(encode({ data: image.pixels, width: image.width, height: image.height }, JPEG_QUALITY).data);
