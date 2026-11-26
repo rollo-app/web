@@ -287,6 +287,7 @@ write("friends/index.html", page({
 const API_URL = "https://api.rolloproject.com";
 const joinScript = `(function () {
   var API = ${JSON.stringify(API_URL)};
+  var STORE = ${JSON.stringify(storeHref)};
   var $ = function (id) { return document.getElementById(id); };
   var match = /^\\/join\\/([A-Za-z0-9]{6})\\/?$/.exec(location.pathname);
   if (!match) {
@@ -297,6 +298,19 @@ const joinScript = `(function () {
   $("code").textContent = code;
   $("open").href = "rollo://join/" + code;
   $("ok").hidden = false;
+  // With the app installed iOS opens this link in the app and the page never loads, so a real browser on an iPhone or iPad
+  // (an iPad says Macintosh) means no app: straight to the store. In-app browsers (Instagram, Facebook) load the page even
+  // with the app, so they keep it. Once per tab: coming back shows the code instead of jumping again.
+  var ua = navigator.userAgent;
+  var ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  if (ios && /Safari\\//.test(ua) && !/Instagram|FBAN|FBAV/.test(ua)) {
+    try {
+      if (!sessionStorage.getItem("rollo.store")) {
+        sessionStorage.setItem("rollo.store", "1");
+        location.href = STORE;
+      }
+    } catch (e) {}
+  }
   // any=1: also answer for a regular rollo (without it only events do, so builds that read any 200 as an event keep working).
   fetch(API + "/events/" + code + "?any=1").then(function (res) {
     if (res.status === 404) {

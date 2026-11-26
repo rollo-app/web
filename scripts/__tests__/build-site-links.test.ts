@@ -127,8 +127,11 @@ describe("the /join page (event link)", () => {
   };
   type El = { hidden: boolean; href?: string; src?: string; textContent?: string };
 
-  /** Runs the script at `pathname` with a fake fetch; resolves once the promise chain settled. */
-  async function openJoin(pathname: string, response?: { status: number; ok?: boolean; json?: unknown } | "network-error") {
+  /** The browser the script runs in. `storage` is the tab's sessionStorage (pass the same Map to load the page twice in one tab). */
+  type Browser = { userAgent: string; maxTouchPoints?: number; storage?: Map<string, string> | "broken" };
+
+  /** Runs the script at `pathname` with a fake fetch (in `browser`, if given); resolves once the promise chain settled. */
+  async function openJoin(pathname: string, response?: { status: number; ok?: boolean; json?: unknown } | "network-error", browser?: Browser) {
     const els: Record<string, El> = {};
     for (const id of ["ok", "bad", "revealed", "name", "cover", "count", "description"]) els[id] = { hidden: true, src: "" };
     els.pick = { hidden: false }; // visible by default inside #ok
@@ -140,9 +143,19 @@ describe("the /join page (event link)", () => {
       return { status: response.status, ok: response.ok ?? response.status === 200, json: async () => response.json };
     });
     const document = { getElementById: (id: string) => els[id] };
-    new Function("location", "document", "fetch", joinScript())({ pathname }, document, fetchMock);
+    const location: { pathname: string; href?: string } = { pathname };
+    const navigator = { userAgent: browser?.userAgent ?? "node", maxTouchPoints: browser?.maxTouchPoints ?? 0 };
+    const storage = browser?.storage instanceof Map ? browser.storage : new Map<string, string>();
+    const blocked = () => {
+      throw new Error("sessionStorage is blocked");
+    };
+    const sessionStorage =
+      browser?.storage === "broken"
+        ? { getItem: blocked, setItem: blocked }
+        : { getItem: (key: string) => storage.get(key) ?? null, setItem: (key: string, value: string) => void storage.set(key, value) };
+    new Function("location", "document", "fetch", "navigator", "sessionStorage", joinScript())(location, document, fetchMock, navigator, sessionStorage);
     await new Promise((r) => setTimeout(r, 0));
-    return { els, fetchMock };
+    return { els, fetchMock, location };
   }
 
   it("writes the page, the deep link scheme and a store link that work without JS", () => {
@@ -312,5 +325,78 @@ describe("the /join page (event link)", () => {
     expect(els.bad!.hidden).toBe(false);
     expect(els.ok!.hidden).toBe(true);
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  // With the app installed iOS opens the link in the app and this page never loads, so a real iOS browser showing it means no app.
+  describe("without the app: straight to the App Store", () => {
+    const STORE = "https://apps.apple.com/app/id6825843502";
+    const ROLLO = { status: 200, json: { name: "X", revealed: false } };
+    const IOS = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko)";
+    const IPHONE_SAFARI = `${IOS} Version/18.1 Mobile/15E148 Safari/604.1`;
+    const MAC = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Safari/605.1.15";
+    const ANDROID = "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36";
+    const INSTAGRAM = `${IOS} Mobile/15E148 Instagram 358.0.0.30.99 (iPhone15,3; iOS 18_1; es_LA; es; scale=3.00; 1290x2796; 665322158)`;
+    const FACEBOOK = `${IOS} Mobile/15E148 [FBAN/FBIOS;FBAV/487.0.0.44.108;FBBV/665322158;FBDV/iPhone15,3;FBMD/iPhone;FBSN/iOS;FBSV/18.1;FBSS/3;FBID/phone;FBLC/es_LA;FBOP/5]`;
+
+    it("jumps to the App Store on an iPhone browser", async () => {
+      const { location } = await openJoin("/join/AB3K9Z", ROLLO, { userAgent: IPHONE_SAFARI });
+      expect(location.href).toBe(STORE);
+    });
+
+    it("jumps only once per tab, so coming back shows the page", async () => {
+      const storage = new Map<string, string>();
+      const first = await openJoin("/join/AB3K9Z", ROLLO, { userAgent: IPHONE_SAFARI, storage });
+      const again = await openJoin("/join/AB3K9Z", ROLLO, { userAgent: IPHONE_SAFARI, storage });
+      expect(first.location.href).toBe(STORE);
+      expect(again.location.href).toBeUndefined();
+    });
+
+    it("still fills the page behind the jump", async () => {
+      const { els, fetchMock, location } = await openJoin("/join/AB3K9Z", ROLLO, { userAgent: IPHONE_SAFARI });
+      expect(location.href).toBe(STORE);
+      expect(els.code!.textContent).toBe("AB3K9Z");
+      expect(els.open!.href).toBe("rollo://join/AB3K9Z");
+      expect(fetchMock).toHaveBeenCalledWith("https://api.rolloproject.com/events/AB3K9Z?any=1");
+      expect(els.name!.textContent).toBe("X");
+    });
+
+    it.each<[string, Browser]>([
+      ["Chrome on an iPhone", { userAgent: `${IOS} CriOS/131.0.6778.73 Mobile/15E148 Safari/604.1` }],
+      ["an iPad, which says Macintosh and has touch", { userAgent: MAC, maxTouchPoints: 5 }],
+    ])("jumps on %s", async (_name, browser) => {
+      const { location } = await openJoin("/join/AB3K9Z", ROLLO, browser);
+      expect(location.href).toBe(STORE);
+    });
+
+    it("jumps for a lowercase code with a trailing slash", async () => {
+      const { location } = await openJoin("/join/ab3k9z/", ROLLO, { userAgent: IPHONE_SAFARI });
+      expect(location.href).toBe(STORE);
+    });
+
+    it.each<[string, Browser]>([
+      ["a Mac", { userAgent: MAC, maxTouchPoints: 0 }],
+      ["Android, whose Chrome also says Safari", { userAgent: ANDROID }],
+      // In-app browsers load the page even with the app installed: iOS never gets to try the Universal Link.
+      ["Instagram's browser", { userAgent: INSTAGRAM }],
+      ["Facebook's browser", { userAgent: FACEBOOK }],
+      ["an in-app browser that keeps the Safari token", { userAgent: `${IPHONE_SAFARI} Instagram 358.0.0.30.99` }],
+      ["any other in-app browser (TikTok's has no Safari token)", { userAgent: `${IOS} Mobile/15E148 musical_ly_32.5.0 JsSdk/2.0 NetType/WIFI Channel/App Store ByteLocale/es Region/UY` }],
+    ])("does not jump on %s", async (_name, browser) => {
+      const { location } = await openJoin("/join/AB3K9Z", ROLLO, browser);
+      expect(location.href).toBeUndefined();
+    });
+
+    it("does not jump for a malformed code", async () => {
+      const { location, els } = await openJoin("/join/abc", ROLLO, { userAgent: IPHONE_SAFARI });
+      expect(location.href).toBeUndefined();
+      expect(els.bad!.hidden).toBe(false);
+    });
+
+    it("does not jump when sessionStorage is unavailable, and the page still works", async () => {
+      const { location, els, fetchMock } = await openJoin("/join/AB3K9Z", ROLLO, { userAgent: IPHONE_SAFARI, storage: "broken" });
+      expect(location.href).toBeUndefined();
+      expect(els.code!.textContent).toBe("AB3K9Z");
+      expect(fetchMock).toHaveBeenCalledWith("https://api.rolloproject.com/events/AB3K9Z?any=1");
+    });
   });
 });
