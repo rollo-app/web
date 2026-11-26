@@ -130,7 +130,7 @@ describe("the /join page (event link)", () => {
   /** Runs the script at `pathname` with a fake fetch; resolves once the promise chain settled. */
   async function openJoin(pathname: string, response?: { status: number; ok?: boolean; json?: unknown } | "network-error") {
     const els: Record<string, El> = {};
-    for (const id of ["ok", "bad", "revealed", "name", "cover"]) els[id] = { hidden: true, src: "" };
+    for (const id of ["ok", "bad", "revealed", "name", "cover", "count", "description"]) els[id] = { hidden: true, src: "" };
     els.pick = { hidden: false }; // visible by default inside #ok
     els.title = { hidden: false };
     els.open = { hidden: false, href: "#" };
@@ -150,7 +150,7 @@ describe("the /join page (event link)", () => {
     expect(h).toContain("Abr&iacute; Rollo para elegir tu grupo.");
     expect(h).toContain("Abrir Rollo");
     expect(h).toContain("Si reci&eacute;n la instalaste, entr&aacute; con este c&oacute;digo en &laquo;Unirme&raquo;");
-    expect(h).toContain("Este c&oacute;digo no es de un evento.");
+    expect(h).toContain("Este c&oacute;digo no es v&aacute;lido.");
     expect(h).toContain("Este evento ya se revel&oacute;.");
     expect(h.match(/<noscript>[\s\S]*apps\.apple\.com\/app\/id6825843502[\s\S]*<\/noscript>/)).not.toBeNull();
   });
@@ -183,9 +183,11 @@ describe("the /join page (event link)", () => {
     expect(joinHtml()).toContain(".cover[hidden]{display:none}");
   });
 
-  it("rewrites /join/:code to the page in vercel.json", () => {
+  it("rewrites /join/:code to the function that adds the rollo's share tags, which bundles the page", () => {
     const vercel = JSON.parse(readFileSync(join(__dirname, "..", "..", "vercel.json"), "utf8"));
-    expect(vercel.rewrites).toContainEqual({ source: "/join/:code", destination: "/join/index.html" });
+    expect(vercel.rewrites).toContainEqual({ source: "/join/:code", destination: "/api/join?code=:code" });
+    expect(vercel.rewrites).toContainEqual({ source: "/join/:code/", destination: "/api/join?code=:code" });
+    expect(vercel.functions["api/join.ts"].includeFiles).toBe("dist/join/index.html");
   });
 
   it("shows the code and the deep link straight away, then the event with its cover", async () => {
@@ -193,7 +195,7 @@ describe("the /join page (event link)", () => {
       status: 200,
       json: { name: "Casamiento de Lu", coverUrl: "/covers/t1/c.jpg", revealed: false, groups: [] },
     });
-    expect(fetchMock).toHaveBeenCalledWith("https://api.rolloproject.com/events/AB3K9Z");
+    expect(fetchMock).toHaveBeenCalledWith("https://api.rolloproject.com/events/AB3K9Z?any=1");
     expect(els.code!.textContent).toBe("AB3K9Z");
     expect(els.open!.href).toBe("rollo://join/AB3K9Z");
     expect(els.name!.textContent).toBe("Casamiento de Lu");
@@ -201,6 +203,80 @@ describe("the /join page (event link)", () => {
     expect(els.cover!.src).toBe("https://api.rolloproject.com/covers/t1/c.jpg");
     expect(els.pick!.hidden).toBe(false);
     expect(els.revealed!.hidden).toBe(true);
+  });
+
+  it("shows how many people already joined", async () => {
+    const { els } = await openJoin("/join/AB3K9Z", { status: 200, json: { name: "X", revealed: false, memberCount: 12 } });
+    expect(els.count!.textContent).toBe("12 personas ya se unieron");
+    expect(els.count!.hidden).toBe(false);
+  });
+
+  it("invites to be among the first when memberCount is null (fewer than 5)", async () => {
+    const { els } = await openJoin("/join/AB3K9Z", { status: 200, json: { name: "X", revealed: false, memberCount: null } });
+    expect(els.count!.textContent).toBe("S\u00e9 de los primeros en unirte");
+    expect(els.count!.hidden).toBe(false);
+  });
+
+  it.each([undefined, -1, 1.5, "7", NaN])("shows no counter when memberCount is %p (older API or invalid)", async (memberCount) => {
+    const { els } = await openJoin("/join/AB3K9Z", { status: 200, json: { name: "X", revealed: false, memberCount } });
+    expect(els.count!.hidden).toBe(true);
+  });
+
+  it("hides the counter once the event is revealed", async () => {
+    const { els } = await openJoin("/join/AB3K9Z", { status: 200, json: { name: "X", revealed: true, memberCount: 9 } });
+    expect(els.count!.hidden).toBe(true);
+  });
+
+  it("shows the description as text under the name", async () => {
+    const { els } = await openJoin("/join/AB3K9Z", { status: 200, json: { name: "Boda", description: "Línea 1\n<b>x</b>" } });
+    expect(els.description!.textContent).toBe("Línea 1\n<b>x</b>");
+    expect(els.description!.hidden).toBe(false);
+  });
+
+  it.each([null, "", "   ", undefined, 5])("shows no description element when it is %p", async (d) => {
+    const { els } = await openJoin("/join/AB3K9Z", { status: 200, json: { name: "Boda", description: d } });
+    expect(els.description!.hidden).toBe(true);
+  });
+
+  it("has the description element, pre-line styles and no innerHTML", () => {
+    const h = joinHtml();
+    expect(h).toContain('<p id="description" class="description" hidden></p>');
+    expect(h).toContain(".description[hidden]{display:none}");
+    expect(h).toContain("white-space:pre-line");
+    expect(joinScript()).not.toContain("innerHTML");
+  });
+
+  it("has the counter element and styles in the built page", () => {
+    const h = joinHtml();
+    expect(h).toContain('<p id="count" class="count muted" hidden></p>');
+    expect(h).toContain(".count[hidden]{display:none}");
+    expect(h).toContain("font-variant-numeric:tabular-nums");
+  });
+
+  it("a regular rollo says rollo: no group to pick, its own revealed text", async () => {
+    const { els } = await openJoin("/join/AB3K9Z", { status: 200, json: { type: "trip", name: "Sur 2027", revealed: false, groups: [] } });
+    expect(els.name!.textContent).toBe("Sur 2027");
+    expect(els.pick!.hidden).toBe(true);
+    expect(els.revealed!.hidden).toBe(true);
+    expect(els.title!.textContent).toBe("Te invitaron a un rollo en Rollo");
+    const revealed = await openJoin("/join/AB3K9Z", { status: 200, json: { type: "trip", name: "Sur 2027", revealed: true } });
+    expect(revealed.els.revealed!.textContent).toBe("Este rollo ya se revel\u00f3.");
+    expect(revealed.els.revealed!.hidden).toBe(false);
+    expect(revealed.els.pick!.hidden).toBe(true);
+  });
+
+  it("an event keeps the group copy, and so does a response without type (older API)", async () => {
+    for (const type of ["event", undefined]) {
+      const { els } = await openJoin("/join/AB3K9Z", { status: 200, json: { type, name: "Boda", revealed: false, groups: [] } });
+      expect(els.pick!.hidden).toBe(false);
+      expect(els.title!.textContent).toBeUndefined();
+    }
+  });
+
+  it("has generic social tags (no event or group wording)", () => {
+    const og = joinHtml().match(/<meta property="og:[^>]+>/g)!.join("\n");
+    expect(og).toContain("Sumate en Rollo.");
+    expect(og).not.toMatch(/evento|grupo/i);
   });
 
   it("says the event was already revealed", async () => {
