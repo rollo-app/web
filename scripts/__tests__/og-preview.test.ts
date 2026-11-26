@@ -57,6 +57,17 @@ describe("fetchPreview", () => {
     await expect(fetchPreview("ABC123", { fetch: stalled, timeoutMs: 30 })).rejects.toBeInstanceOf(PreviewUnavailable);
     expect(Date.now() - started).toBeLessThan(300);
   });
+  it.each([
+    [0.25, 0.25],
+    [0, 0],
+    [1, 1],
+    [1.5, null],
+    [-0.1, null],
+    ["0.5", null],
+    [undefined, null],
+  ])("reads coverFocusY %s as %s", async (value, expected) => {
+    expect((await fetchPreview("ABC123", { fetch: respond(200, { ...body, coverFocusY: value }) }))?.coverFocusY).toBe(expected);
+  });
   it("accepts the production API's shorter answer (name, cover, revealed, groups)", async () => {
     const preview = await fetchPreview("ABC123", { fetch: respond(200, { name: "Casamiento", coverUrl: "/covers/t/c.jpg", revealed: false, groups: [] }) });
     expect(preview).toMatchObject({ type: "event", name: "Casamiento", coverUrl: "/covers/t/c.jpg", startsAt: null, endsAt: null, memberCount: null });
@@ -127,5 +138,6 @@ describe("previewVersion", () => {
     expect(previewVersion(samplePreview({ name: "Otro" }))).not.toBe(base);
     expect(previewVersion(samplePreview({ coverUrl: null }))).not.toBe(base);
     expect(previewVersion(samplePreview({ memberCount: 49 }))).not.toBe(base);
+    expect(previewVersion(samplePreview({ coverFocusY: 0.2 }))).not.toBe(base);
   });
 });

@@ -7,9 +7,9 @@ import { cardSvg, cardText, fetchCover, handleOg, IMAGE_CACHE_LONG, IMAGE_CACHE_
 import { PreviewUnavailable } from "../../api/_lib/preview";
 import { samplePreview } from "./helpers/preview";
 
-/** A small PNG standing in for a cover, as the API would send it. */
+/** A small portrait PNG standing in for a cover (two colors, so the framing shows), as the API would send it. */
 const coverPng = () =>
-  new Resvg(`<svg xmlns="http://www.w3.org/2000/svg" width="90" height="120"><rect width="90" height="120" fill="#c4795a"/></svg>`)
+  new Resvg(`<svg xmlns="http://www.w3.org/2000/svg" width="90" height="120"><rect width="90" height="60" fill="#c4795a"/><rect y="60" width="90" height="60" fill="#2b2a3a"/></svg>`)
     .render()
     .asPng();
 const coverDataUri = () => `data:image/png;base64,${Buffer.from(coverPng()).toString("base64")}`;
@@ -48,7 +48,33 @@ describe("cardText", () => {
   });
 });
 
+/** Mean luminance (0..255) of a rectangle of a JPEG. */
+function meanLuminance(jpeg: Uint8Array, x0: number, y0: number, x1: number, y1: number) {
+  const { data, width } = decode(jpeg);
+  let sum = 0;
+  for (let y = y0; y < y1; y++) {
+    for (let x = x0; x < x1; x++) {
+      const i = (y * width + x) * 4;
+      sum += 0.2126 * data[i]! + 0.7152 * data[i + 1]! + 0.0722 * data[i + 2]!;
+    }
+  }
+  return sum / ((x1 - x0) * (y1 - y0));
+}
+
 describe("renderCard edge cases", () => {
+  it("darkens behind the brand so it reads over a light cover", async () => {
+    const white = new Resvg(`<svg xmlns="http://www.w3.org/2000/svg" width="90" height="120"><rect width="90" height="120" fill="#fafafa"/></svg>`)
+      .render()
+      .asPng();
+    const jpeg = await renderCard(samplePreview(), `data:image/png;base64,${Buffer.from(white).toString("base64")}`);
+    // The brand row (logo + "Rollo Project") sits around x 72..330, y 56..116.
+    expect(meanLuminance(jpeg, 60, 50, 340, 122)).toBeLessThan(80);
+  });
+  it("frames the cover by coverFocusY (top vs bottom differ; null is the middle)", async () => {
+    const svg = (coverFocusY: number | null) => cardSvg(samplePreview({ coverFocusY }), coverDataUri());
+    expect(await svg(0)).not.toBe(await svg(1));
+    expect(await svg(null)).toBe(await svg(0.5));
+  });
   it("draws Latin letters beyond Spanish (Ł) instead of the missing-glyph box", async () => {
     // A character no bundled font has (中) draws satori's "no glyph" box; Ł must not draw the same thing.
     const svg = (name: string) => cardSvg(samplePreview({ name, startsAt: null, endsAt: null, memberCount: null }), null);
