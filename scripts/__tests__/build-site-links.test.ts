@@ -125,24 +125,113 @@ describe("the /join page (event link)", () => {
     expect(scripts).toHaveLength(1);
     return scripts[0]!;
   };
-  type El = { hidden: boolean; href?: string; src?: string; textContent?: string };
+  type El = { hidden: boolean; href?: string; src?: string; textContent?: string; onload?: () => void; onerror?: () => void };
+  type ApiResponse = { status: number; ok?: boolean; json?: unknown } | "network-error";
 
-  /** Runs the script at `pathname` with a fake fetch; resolves once the promise chain settled. */
-  async function openJoin(pathname: string, response?: { status: number; ok?: boolean; json?: unknown } | "network-error") {
+  /**
+   * The browser the script runs in.
+   * - `visit`: how this load came about: a link or the address bar ("navigate", the default), a reload, or a tab the browser
+   *   brought back ("back_forward").
+   * - `timing`: which APIs say so: both (default), only the old one (`performance.navigation`), only the new one
+   *   (`getEntriesByType`), or none.
+   * - `storage`: the tab's sessionStorage (pass the same Map to load the page twice in one tab); "broken" if it throws, or
+   *   "read-only" if only writing throws (private browsing in old Safari).
+   */
+  type Browser = {
+    userAgent: string;
+    maxTouchPoints?: number;
+    visit?: "navigate" | "reload" | "back_forward";
+    timing?: "both" | "old" | "new" | "none";
+    storage?: Map<string, string> | "broken" | "read-only";
+  };
+
+  /** Starts the script at `pathname` in a fake browser and hands back its controls: nothing has loaded or answered yet. */
+  function startJoin(pathname: string, browser?: Browser) {
     const els: Record<string, El> = {};
     for (const id of ["ok", "bad", "revealed", "name", "cover", "count", "description"]) els[id] = { hidden: true, src: "" };
     els.pick = { hidden: false }; // visible by default inside #ok
     els.title = { hidden: false };
     els.open = { hidden: false, href: "#" };
     els.code = { hidden: false, textContent: "" };
-    const fetchMock = vi.fn(async () => {
-      if (response === "network-error" || !response) throw new Error("offline");
-      return { status: response.status, ok: response.ok ?? response.status === 200, json: async () => response.json };
-    });
-    const document = { getElementById: (id: string) => els[id] };
-    new Function("location", "document", "fetch", joinScript())({ pathname }, document, fetchMock);
-    await new Promise((r) => setTimeout(r, 0));
-    return { els, fetchMock };
+    let settleFetch: ((response?: ApiResponse) => void) | undefined;
+    const fetchMock = vi.fn(
+      () =>
+        new Promise((resolve, reject) => {
+          settleFetch = (response) =>
+            response === "network-error" || !response
+              ? reject(new Error("offline"))
+              : resolve({ status: response.status, ok: response.ok ?? response.status === 200, json: async () => response.json });
+        }),
+    );
+    /** Every time the page left for another URL, with the name it was showing at that moment. */
+    const jumps: { to: string; name?: string }[] = [];
+    const location = {
+      pathname,
+      set href(to: string) {
+        jumps.push({ to, name: els.name!.textContent });
+      },
+    };
+    const loadListeners: (() => void)[] = [];
+    const window = { addEventListener: (type: string, listener: () => void) => void (type === "load" && loadListeners.push(listener)) };
+    const document = { readyState: "interactive", getElementById: (id: string) => els[id] };
+    const navigator = { userAgent: browser?.userAgent ?? "node", maxTouchPoints: browser?.maxTouchPoints ?? 0 };
+    const visit = browser?.visit ?? "navigate";
+    const timing = browser?.timing ?? "both";
+    const performance = {
+      ...((timing === "both" || timing === "old") && { navigation: { type: { navigate: 0, reload: 1, back_forward: 2 }[visit] } }),
+      ...((timing === "both" || timing === "new") && { getEntriesByType: (type: string) => (type === "navigation" ? [{ type: visit }] : []) }),
+    };
+    const storage = browser?.storage instanceof Map ? browser.storage : new Map<string, string>();
+    const blocked = () => {
+      throw new Error("sessionStorage is blocked");
+    };
+    const sessionStorage = {
+      getItem: browser?.storage === "broken" ? blocked : (key: string) => storage.get(key) ?? null,
+      setItem: typeof browser?.storage === "string" ? blocked : (key: string, value: string) => void storage.set(key, value),
+    };
+    let now = 0;
+    const timers: { at: number; run: () => void }[] = [];
+    const setTimeout = (run: () => void, ms: number) => void timers.push({ at: now + ms, run });
+    new Function("location", "document", "fetch", "navigator", "window", "performance", "sessionStorage", "setTimeout", joinScript())(
+      location,
+      document,
+      fetchMock,
+      navigator,
+      window,
+      performance,
+      sessionStorage,
+      setTimeout,
+    );
+    return {
+      els,
+      fetchMock,
+      jumps,
+      /** The page's own load event. */
+      load: () => loadListeners.splice(0).forEach((listener) => listener()),
+      /** The API answers (or the request fails); resolves once the page has handled it. */
+      answer: async (response?: ApiResponse) => {
+        settleFetch?.(response);
+        await new Promise((r) => globalThis.setTimeout(r, 0));
+      },
+      /** The cover image finishes loading ("onload") or fails ("onerror"). */
+      cover: (event: "onload" | "onerror") => els.cover![event]?.(),
+      /** Time passes: the timers due by then run. */
+      wait: (ms: number) => {
+        now += ms;
+        const due = timers.filter((timer) => timer.at <= now);
+        for (const timer of due) timers.splice(timers.indexOf(timer), 1);
+        for (const timer of due) timer.run();
+      },
+    };
+  }
+
+  /** Runs the script at `pathname` to the end: the page loads, the API answers `response` and the cover (if any) loads. */
+  async function openJoin(pathname: string, response?: ApiResponse, browser?: Browser) {
+    const page = startJoin(pathname, browser);
+    page.load();
+    await page.answer(response);
+    page.cover("onload");
+    return page;
   }
 
   it("writes the page, the deep link scheme and a store link that work without JS", () => {
@@ -312,5 +401,167 @@ describe("the /join page (event link)", () => {
     expect(els.bad!.hidden).toBe(false);
     expect(els.ok!.hidden).toBe(true);
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  // With the app installed iOS opens the link in the app and this page never loads, so an iPhone browser showing it almost
+  // always means no app.
+  describe("without the app: straight to the App Store", () => {
+    const STORE = "https://apps.apple.com/app/id6825843502";
+    const ROLLO = { status: 200, json: { name: "X", revealed: false } };
+    const IOS = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko)";
+    const IPHONE_SAFARI = `${IOS} Version/18.1 Mobile/15E148 Safari/604.1`;
+    const IPHONE: Browser = { userAgent: IPHONE_SAFARI };
+    const MAC = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Safari/605.1.15";
+    const ANDROID = "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36";
+    const INSTAGRAM = `${IOS} Mobile/15E148 Instagram 358.0.0.30.99 (iPhone15,3; iOS 18_1; es_LA; es; scale=3.00; 1290x2796; 665322158)`;
+    const FACEBOOK = `${IOS} Mobile/15E148 [FBAN/FBIOS;FBAV/487.0.0.44.108;FBBV/665322158;FBDV/iPhone15,3;FBMD/iPhone;FBSN/iOS;FBSV/18.1;FBSS/3;FBID/phone;FBLC/es_LA;FBOP/5]`;
+    /** Where the page went, in order. */
+    const to = (page: { jumps: { to: string }[] }) => page.jumps.map((jump) => jump.to);
+
+    it("jumps to the App Store on an iPhone browser", async () => {
+      const page = await openJoin("/join/AB3K9Z", ROLLO, IPHONE);
+      expect(to(page)).toEqual([STORE]);
+    });
+
+    it("leaves with the rollo already on the page, so coming back finds it", async () => {
+      const page = await openJoin("/join/AB3K9Z", ROLLO, IPHONE);
+      expect(page.jumps).toEqual([{ to: STORE, name: "X" }]);
+      expect(page.els.code!.textContent).toBe("AB3K9Z");
+      expect(page.els.open!.href).toBe("rollo://join/AB3K9Z");
+    });
+
+    it("waits for the API's answer before leaving", async () => {
+      const page = startJoin("/join/AB3K9Z", IPHONE);
+      page.load();
+      expect(to(page)).toEqual([]);
+      await page.answer(ROLLO);
+      expect(to(page)).toEqual([STORE]);
+    });
+
+    it("waits for the page's own load before leaving", async () => {
+      const page = startJoin("/join/AB3K9Z", IPHONE);
+      await page.answer(ROLLO);
+      expect(to(page)).toEqual([]);
+      page.load();
+      expect(to(page)).toEqual([STORE]);
+    });
+
+    it.each(["onload", "onerror"] as const)("waits for the cover before leaving (%s)", async (event) => {
+      const page = startJoin("/join/AB3K9Z", IPHONE);
+      page.load();
+      await page.answer({ status: 200, json: { name: "X", coverUrl: "/covers/t1/c.jpg", revealed: false } });
+      expect(to(page)).toEqual([]);
+      page.cover(event);
+      expect(to(page)).toEqual([STORE]);
+    });
+
+    it("leaves after 1.5 s when the API never answers", () => {
+      const page = startJoin("/join/AB3K9Z", IPHONE);
+      page.load();
+      page.wait(1499);
+      expect(to(page)).toEqual([]);
+      page.wait(1);
+      expect(to(page)).toEqual([STORE]);
+    });
+
+    it("jumps once, even when everything finishes after the 1.5 s", async () => {
+      const page = startJoin("/join/AB3K9Z", IPHONE);
+      page.wait(1500);
+      page.load();
+      await page.answer(ROLLO);
+      expect(to(page)).toEqual([STORE]);
+    });
+
+    it.each<[string, ApiResponse]>([
+      ["is unreachable", "network-error"],
+      ["is rate limited", { status: 429 }],
+    ])("jumps when the API %s", async (_name, response) => {
+      const page = await openJoin("/join/AB3K9Z", response, IPHONE);
+      expect(to(page)).toEqual([STORE]);
+    });
+
+    it("does not jump for a code the API does not know: the page says so", async () => {
+      const page = await openJoin("/join/AB3K9Z", { status: 404, json: { error: "Código inválido" } }, IPHONE);
+      page.wait(1500);
+      expect(to(page)).toEqual([]);
+      expect(page.els.bad!.hidden).toBe(false);
+    });
+
+    it.each<[string, Browser]>([
+      ["Chrome on an iPhone", { userAgent: `${IOS} CriOS/131.0.6778.73 Mobile/15E148 Safari/604.1` }],
+      ["an iPad with the mobile site", { userAgent: "Mozilla/5.0 (iPad; CPU OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/604.1" }],
+    ])("jumps on %s", async (_name, browser) => {
+      const page = await openJoin("/join/AB3K9Z", ROLLO, browser);
+      expect(to(page)).toEqual([STORE]);
+    });
+
+    it("jumps for a lowercase code with a trailing slash", async () => {
+      const page = await openJoin("/join/ab3k9z/", ROLLO, IPHONE);
+      expect(to(page)).toEqual([STORE]);
+    });
+
+    it.each<[string, Browser]>([
+      ["a Mac", { userAgent: MAC }],
+      // Safari on an iPad says Macintosh, and Apple answers that with the store's web page instead of opening the App Store.
+      ["an iPad that says Macintosh", { userAgent: MAC, maxTouchPoints: 5 }],
+      ["Android, whose Chrome also says Safari", { userAgent: ANDROID, maxTouchPoints: 5 }],
+      // In-app browsers load the page even with the app installed: iOS never gets to try the Universal Link.
+      ["Instagram's browser", { userAgent: INSTAGRAM }],
+      ["Facebook's browser", { userAgent: FACEBOOK }],
+      ["Instagram's browser if it kept the Safari token", { userAgent: `${IPHONE_SAFARI} Instagram 358.0.0.30.99` }],
+      ["Facebook's browser if it kept the Safari token", { userAgent: `${IPHONE_SAFARI} [FBAN/FBIOS;FBAV/487.0.0.44.108]` }],
+      ["any other in-app browser (TikTok's has no Safari token)", { userAgent: `${IOS} Mobile/15E148 musical_ly_32.5.0 JsSdk/2.0 NetType/WIFI Channel/App Store ByteLocale/es Region/UY` }],
+    ])("does not jump on %s", async (_name, browser) => {
+      const page = await openJoin("/join/AB3K9Z", ROLLO, browser);
+      page.wait(1500);
+      expect(to(page)).toEqual([]);
+    });
+
+    it("does not jump for a malformed code", async () => {
+      const page = await openJoin("/join/abc", ROLLO, IPHONE);
+      page.wait(1500);
+      expect(to(page)).toEqual([]);
+      expect(page.els.bad!.hidden).toBe(false);
+    });
+
+    // A reload, a tab the browser restores after closing, or Back from the store are not someone opening the invitation.
+    it.each(["reload", "back_forward"] as const)("does not jump when the tab comes back (%s): the page stays", async (visit) => {
+      const page = await openJoin("/join/AB3K9Z", ROLLO, { ...IPHONE, visit });
+      page.wait(1500);
+      expect(to(page)).toEqual([]);
+      expect(page.els.name!.textContent).toBe("X");
+    });
+
+    it("jumps only once per tab, even if the link is opened again in it", async () => {
+      const storage = new Map<string, string>();
+      const first = await openJoin("/join/AB3K9Z", ROLLO, { ...IPHONE, storage });
+      const again = await openJoin("/join/AB3K9Z", ROLLO, { ...IPHONE, storage });
+      again.wait(1500);
+      expect(to(first)).toEqual([STORE]);
+      expect(to(again)).toEqual([]);
+    });
+
+    // Without the mark a later load in the same tab could jump again, so no mark means no jump.
+    it.each(["broken", "read-only"] as const)("does not jump when sessionStorage is %s, and the page still works", async (storage) => {
+      const page = await openJoin("/join/AB3K9Z", ROLLO, { ...IPHONE, storage });
+      page.wait(1500);
+      expect(to(page)).toEqual([]);
+      expect(page.els.code!.textContent).toBe("AB3K9Z");
+      expect(page.els.name!.textContent).toBe("X");
+    });
+
+    it.each(["old", "new"] as const)("tells a fresh visit from a reload with the %s navigation API alone", async (timing) => {
+      const fresh = await openJoin("/join/AB3K9Z", ROLLO, { ...IPHONE, timing });
+      const reloaded = await openJoin("/join/AB3K9Z", ROLLO, { ...IPHONE, timing, visit: "reload" });
+      reloaded.wait(1500);
+      expect(to(fresh)).toEqual([STORE]);
+      expect(to(reloaded)).toEqual([]);
+    });
+
+    it("does not jump when the browser cannot tell how the page was opened", async () => {
+      const page = await openJoin("/join/AB3K9Z", ROLLO, { ...IPHONE, timing: "none" });
+      page.wait(1500);
+      expect(to(page)).toEqual([]);
+    });
   });
 });

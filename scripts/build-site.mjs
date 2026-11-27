@@ -287,6 +287,7 @@ write("friends/index.html", page({
 const API_URL = "https://api.rolloproject.com";
 const joinScript = `(function () {
   var API = ${JSON.stringify(API_URL)};
+  var STORE = ${JSON.stringify(storeHref)};
   var $ = function (id) { return document.getElementById(id); };
   var match = /^\\/join\\/([A-Za-z0-9]{6})\\/?$/.exec(location.pathname);
   if (!match) {
@@ -297,9 +298,42 @@ const joinScript = `(function () {
   $("code").textContent = code;
   $("open").href = "rollo://join/" + code;
   $("ok").hidden = false;
+  // With the app installed iOS opens this link in the app and the page never loads, so an iPhone browser showing it almost
+  // always means no app: go to the store. Not inside Instagram or Facebook (their browser loads the page even with the app).
+  // Only on a fresh visit, once per tab: a reload, a tab the browser restores (which loses sessionStorage but says
+  // back_forward) or Back keep the page. It goes last, once the rollo is on the page (leaving cancels whatever is still
+  // loading) and the page has loaded (so Back comes back here), or after 1.5 s.
+  var ua = navigator.userAgent;
+  var old = performance.navigation;
+  var entry = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
+  var fresh = old ? old.type === 0 : !!entry && entry.type === "navigate";
+  var jump = false;
+  try {
+    jump = fresh && /iPhone|iPad/.test(ua) && /Safari\\//.test(ua) && !/Instagram|FBAN/.test(ua) && !sessionStorage.getItem("rollo.store");
+  } catch (e) {}
+  var waiting = 2; // the API's answer and the page's own load (plus the cover, if there is one)
+  function go() {
+    if (!jump) return;
+    jump = false;
+    try {
+      sessionStorage.setItem("rollo.store", "1");
+    } catch (e) {
+      return;
+    }
+    location.href = STORE;
+  }
+  function done() {
+    if (--waiting === 0) go();
+  }
+  if (jump) {
+    setTimeout(go, 1500);
+    if (document.readyState === "complete") done();
+    else window.addEventListener("load", done);
+  }
   // any=1: also answer for a regular rollo (without it only events do, so builds that read any 200 as an event keep working).
   fetch(API + "/events/" + code + "?any=1").then(function (res) {
     if (res.status === 404) {
+      jump = false;
       $("ok").hidden = true;
       $("bad").hidden = false;
       return null;
@@ -323,6 +357,10 @@ const joinScript = `(function () {
       $("description").hidden = false;
     }
     if (typeof event.coverUrl === "string" && /^\\/covers\\/[A-Za-z0-9._\\/-]+$/.test(event.coverUrl) && event.coverUrl.indexOf("..") === -1) {
+      if (jump) {
+        waiting++;
+        $("cover").onload = $("cover").onerror = done;
+      }
       $("cover").src = API + event.coverUrl;
       $("cover").hidden = false;
     }
@@ -337,7 +375,7 @@ const joinScript = `(function () {
       $("pick").hidden = true;
       $("revealed").hidden = false;
     }
-  }).catch(function () {});
+  }).catch(function () {}).then(done);
 })();`;
 
 const joinInvalid = `<p>Este c&oacute;digo no es v&aacute;lido.</p>`;
