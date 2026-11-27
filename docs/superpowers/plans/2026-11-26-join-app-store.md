@@ -112,3 +112,19 @@ git commit -m "Join: en iPhone salta directo al App Store"
   no hacía fallar ningún test.
 - Cada condición del salto se mutó a mano (sin token, sin lista, Mac sin táctil, sin iPad, sin "una vez", sin `catch`, URL
   mal, `return` después del salto, saltar siempre) y cada mutación la atrapa al menos un test.
+- `openJoin` no devuelve `storage`: devuelve los controles de la página (ver abajo).
+
+## Después de la revisión de la rama
+
+Un revisor aparte corrió el script del build en un WKWebView y marcó tres problemas importantes (están en la spec, "Cambios
+después de la revisión de la rama"). La corrección cambió el diseño de la tarea 1:
+
+- El salto va al final: espera a la API, a la portada y al `load`, con tope de 1,5 s. Un 404 no salta.
+- "Una vez" es visita nueva (`performance.navigation.type`, con la API nueva de respaldo) más la marca en
+  `sessionStorage`.
+- Salta con `iPhone` o `iPad` en el User-Agent; el iPad que dice Macintosh quedó afuera, igual que `iPod` y `FBAV`
+  (redundantes).
+- Los tests usan `startJoin(pathname, browser)`, que devuelve controles (`load()`, `answer(response)`, `cover(evento)`,
+  `wait(ms)`) y la lista `jumps` con lo que mostraba la página al irse. `openJoin` corre todo hasta el final.
+- Quedaron 31 casos del salto, 225 tests en total. Se mutaron 26 condiciones del script y cada una la atrapa al menos un
+  test.
